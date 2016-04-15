@@ -2,6 +2,13 @@ import pandas as pd
 import numpy as np
 
 
+def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop data which doesn't comply with constraints"""
+    df = df[df.quantity > 0]
+    df = df[df.quantity >= df.returnQuantity]
+    return df
+
+
 def parse_strings(df: pd.DataFrame) -> pd.DataFrame:
     """Convert to float and integer types"""
     df['orderDate'] = pd.to_datetime(df['orderDate'])
@@ -12,8 +19,7 @@ def parse_strings(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop data which doesn't comply with constraints"""
-    df = df[df.quantity > 0]
-    df = df[df.quantity >= df.returnQuantity]
+def cleanse(df: pd.DataFrame) -> pd.DataFrame:
+    df = parse_strings(df)
+    df = enforce_constraints(df)
     return df
