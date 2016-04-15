@@ -13,5 +13,5 @@ class DMCCostTest(unittest.TestCase):
         self.assertEqual(res, 4)
 
     def test_dmc_relative(self):
-        res = dmc_cost_relative(self.a ,self.b)
+        res = dmc_cost_relative(self.a, self.b)
         self.assertEqual(res, 0.8)
