@@ -9,4 +9,4 @@ def dmc_cost(predicted: np.array, ground_truth: np.array) -> int:
 
 def dmc_cost_relative(predicted: np.array, ground_truth: np.array) -> int:
     cost = dmc_cost(predicted, ground_truth)
-    return cost/len(len(predicted))
+    return cost/len(predicted)
