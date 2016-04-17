@@ -19,8 +19,15 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def customer_return_probability(df: pd.DataFrame) -> pd.DataFrame:
-    customer_return_probs = (df.groupby(['customerID'])['returnQuantity'].sum() /
-                             df.groupby(['customerID'])['quantity'].sum())
+    returned_articles = df.groupby(['customerID'])['returnQuantity'].sum()
+    bought_articles = df.groupby(['customerID'])['quantity'].sum()
+    customer_return_probs = returned_articles / bought_articles
     df['customerReturnProbs'] = customer_return_probs.loc[df['customerID']]
     return df
 
+def group_return_probability(df: pd.DataFrame) -> pd.DataFrame:
+    returned_articles = df.groupby(['productGroup'])['returnQuantity'].sum()
+    bought_articles = df.groupby(['productGroup'])['quantity'].sum()
+    group_return_probs = returned_articles / bought_articles
+    df['groupReturnProbs'] = group_return_probs.loc[df['customerID']]
+    return df
