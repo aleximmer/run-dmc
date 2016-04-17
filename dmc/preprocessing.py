@@ -22,6 +22,8 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['orderSeason'] = df.orderDate.apply(date_to_season)
     df = customer_return_probability(df)
     df = same_article_surplus(df)
+    df = same_article_same_size_surplus(df)
+    df = same_article_same_color_surplus(df)
     return df
 
 
@@ -35,7 +37,21 @@ def customer_return_probability(df: pd.DataFrame) -> pd.DataFrame:
 def same_article_surplus(df: pd.DataFrame) -> pd.DataFrame:
     article_group = df.groupby(['orderID', 'articleID'])['quantity'].sum()
     index = list(zip(df.orderID, df.articleID))
-    df['surplusQuantity'] = list(article_group.loc[index]) - df.quantity
+    df['surplusArticleQuantity'] = list(article_group.loc[index]) - df.quantity
+    return df
+
+
+def same_article_same_size_surplus(df: pd.DataFrame) -> pd.DataFrame:
+    article_size_group = df.groupby(['orderID', 'articleID', 'sizeCode'])['quantity'].sum()
+    index = list(zip(df.orderID, df.articleID, df.sizeCode))
+    df['surplusArticleSizeQuantity'] = list(article_size_group.loc[index]) - df.quantity
+    return df
+
+
+def same_article_same_color_surplus(df: pd.DataFrame) -> pd.DataFrame:
+    article_size_group = df.groupby(['orderID', 'articleID', 'colorCode'])['quantity'].sum()
+    index = list(zip(df.orderID, df.articleID, df.colorCode))
+    df['surplusArticleColorQuantity'] = list(article_size_group.loc[index]) - df.quantity
     return df
 
 
