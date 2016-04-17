@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.tree import DecisionTreeClassifier
 
 
 class DMCClassifier:
@@ -18,7 +19,7 @@ class DMCClassifier:
         self.clf.fit(self.X, self.Y)
 
     def predict(self, df: pd.DataFrame) -> np.array:
-        Y = self.label_vector(df)
+        Y = self.feature_matrix(df)
         return self.clf.predict(Y)
 
     @classmethod
@@ -27,4 +28,15 @@ class DMCClassifier:
 
     @classmethod
     def label_vector(cls, df: pd.DataFrame) -> np.array:
-        return df.as_matrix()
+        return df.as_matrix(columns=['returnQuantity'])
+
+
+class DecisionTree(DMCClassifier):
+    classifier = DecisionTreeClassifier
+
+    @classmethod
+    def feature_matrix(cls, df: pd.DataFrame) -> np.array:
+        return np.nan_to_num(df.as_matrix(
+            columns=['quantity', 'deviceID', 'voucherID',
+                     'colorCode', 'rrp', 'productGroup']))
+
