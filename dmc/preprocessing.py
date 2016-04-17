@@ -19,13 +19,11 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['orderWeek'] = df.orderDate.apply(lambda x: x.week)
     df['orderWeekOfYear'] = df.orderDate.apply(lambda x: x.weekofyear)
     df['orderQuarter'] = df.orderDate.apply(lambda x: x.quarter)
+    df['orderSeason'] = df.orderDate.apply(date_to_season)
     df = customer_return_probability(df)
-    return df
-
-
-def preprocess(df: pd.DataFrame) -> pd.DataFrame:
-    df = add_features(df)
-    df = encode_features(df)
+    df = same_article_surplus(df)
+    df = same_article_same_size_surplus(df)
+    df = same_article_same_color_surplus(df)
     return df
 
 
@@ -37,17 +35,40 @@ def customer_return_probability(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def season(df: pd.DataFrame) -> pd.DataFrame:
-    def date_to_season(date):
-        if date.month <= 3 and date.day <= 22:
-            return 1
-        if date.month <= 6 and date.day <= 22:
-            return 2
-        if date.month <= 9 and date.day <= 22:
-            return 3
-        if date.month <= 12 and date.day <= 22:
-            return 4
-        return 1
+def same_article_surplus(df: pd.DataFrame) -> pd.DataFrame:
+    article_group = df.groupby(['orderID', 'articleID'])['quantity'].sum()
+    index = list(zip(df.orderID, df.articleID))
+    df['surplusArticleQuantity'] = list(article_group.loc[index]) - df.quantity
+    return df
 
-    df['season'] = df.orderDate.copy().apply(date_to_season)
+
+def same_article_same_size_surplus(df: pd.DataFrame) -> pd.DataFrame:
+    article_size_group = df.groupby(['orderID', 'articleID', 'sizeCode'])['quantity'].sum()
+    index = list(zip(df.orderID, df.articleID, df.sizeCode))
+    df['surplusArticleSizeQuantity'] = list(article_size_group.loc[index]) - df.quantity
+    return df
+
+
+def same_article_same_color_surplus(df: pd.DataFrame) -> pd.DataFrame:
+    article_size_group = df.groupby(['orderID', 'articleID', 'colorCode'])['quantity'].sum()
+    index = list(zip(df.orderID, df.articleID, df.colorCode))
+    df['surplusArticleColorQuantity'] = list(article_size_group.loc[index]) - df.quantity
+    return df
+
+
+def date_to_season(date):
+    if date.month <= 3 and date.day <= 22:
+        return 1
+    if date.month <= 6 and date.day <= 22:
+        return 2
+    if date.month <= 9 and date.day <= 22:
+        return 3
+    if date.month <= 12 and date.day <= 22:
+        return 4
+    return 1
+
+
+def preprocess(df: pd.DataFrame) -> pd.DataFrame:
+    df = add_features(df)
+    df = encode_features(df)
     return df
