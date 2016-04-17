@@ -18,7 +18,7 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['orderDayOfYear'] = df.orderDate.apply(lambda x: x.dayofyear)
     df['orderWeek'] = df.orderDate.apply(lambda x: x.week)
     df['orderWeekOfYear'] = df.orderDate.apply(lambda x: x.weekofyear)
-    df['orderYearDay'] = df.orderDate.apply(lambda x: x.timetuple().tm_yday)
+    df['orderDayOfYear'] = df.orderDate.apply(lambda x: x.dayofyear)
     df['orderQuarter'] = df.orderDate.apply(lambda x: x.quarter)
     df['orderSeason'] = df.orderDate.apply(date_to_season)
     df = customer_return_probability(df)
