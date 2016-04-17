@@ -9,10 +9,9 @@ def dmc_cost(predicted: np.array, ground_truth: np.array) -> int:
 
 def dmc_cost_relative(predicted: np.array, ground_truth: np.array) -> float:
     cost = dmc_cost(predicted, ground_truth)
-    return cost/len(predicted)
+    return cost / len(predicted)
 
 
 def precision(predicted: np.array, ground_truth: np.array) -> int:
-    size = len(predicted)
     diff = predicted - ground_truth
-    return 1 - np.count_nonzero(diff)/size
+    return 1 - np.count_nonzero(diff) / len(predicted)

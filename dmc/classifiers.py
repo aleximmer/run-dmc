@@ -39,4 +39,3 @@ class DecisionTree(DMCClassifier):
         return np.nan_to_num(df.as_matrix(
             columns=['quantity', 'deviceID', 'voucherID',
                      'colorCode', 'rrp', 'productGroup']))
-
