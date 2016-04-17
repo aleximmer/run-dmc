@@ -20,7 +20,6 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['orderWeekOfYear'] = df.orderDate.apply(lambda x: x.weekofyear)
     df['orderQuarter'] = df.orderDate.apply(lambda x: x.quarter)
     df = customer_return_probability(df)
-    df = group_return_probability(df)
     return df
 
 
@@ -35,14 +34,6 @@ def customer_return_probability(df: pd.DataFrame) -> pd.DataFrame:
     bought_articles = df.groupby(['customerID']).quantity.sum()
     customer_return_probs = returned_articles / bought_articles
     df['customerReturnProbs'] = list(customer_return_probs.loc[df.customerID])
-    return df
-
-
-def group_return_probability(df: pd.DataFrame) -> pd.DataFrame:
-    returned_articles = df.groupby(['productGroup']).returnQuantity.sum()
-    bought_articles = df.groupby(['productGroup']).quantity.sum()
-    group_return_probs = returned_articles / bought_articles
-    df['groupReturnProbs'] = list(group_return_probs.loc[df.customerID])
     return df
 
 
