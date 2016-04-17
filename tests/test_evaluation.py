@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from dmc.evaluation import dmc_cost, dmc_cost_relative
+from dmc.evaluation import dmc_cost, dmc_cost_relative, precision
 
 
 class DMCCostTest(unittest.TestCase):
@@ -15,3 +15,7 @@ class DMCCostTest(unittest.TestCase):
     def test_dmc_relative(self):
         res = dmc_cost_relative(self.a, self.b)
         self.assertEqual(res, 0.8)
+
+    def test_precision(self):
+        res = precision(self.a, self.b)
+        self.assertEqual(res, 0.4)
