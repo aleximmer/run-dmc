@@ -1,0 +1,26 @@
+language: python
+
+python:
+  - "3.5"
+
+install:
+  - ./.condaInstall.sh
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  # Useful for debugging any issues with conda
+  - conda info -a
+  - source activate test-environment
+  - pip -V
+  - pip install flake8
+
+before_script:
+  - flake8 .
+
+script: python -m unittest discover
+
+cache:
+  - directories:
+    - $HOME/miniconda
+    - $HOME/.cache/pip
+    - $HOME/.cache/http
+    - $HOME/virtualenv/python3.5.0/lib/python3.5_with_system_site_packages/site-packages
