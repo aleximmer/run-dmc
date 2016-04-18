@@ -67,7 +67,7 @@ class Forest(DMCClassifier):
 class NaiveBayes(DMCClassifier):
     classifier = BernoulliNB
 
-'''
+
 class SVM(DMCClassifier):
     def __init__(self, df: pd.DataFrame):
         super().__init__(df)
@@ -78,8 +78,7 @@ class NeuralNetwork(DMCClassifier):
     def __init__(self, df: pd.DataFrame):
         super().__init__(df)
         input_layer, output_layer = len(self.X.T), 6
-        self.clf = tn.Classifier([input_layer, output_layer])
+        self.clf = tn.Classifier([input_layer, 100, 70, 50, 20, output_layer])
 
     def fit(self):
         self.clf.train((self.X, self.Y), algo='sgd', learning_rate=1e-4, momentum=0.9)
-'''
