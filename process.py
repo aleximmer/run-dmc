@@ -5,7 +5,7 @@ import dmc
 
 def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
     # shuffle Dataframe
-    df.reindex(np.random.permutation(df.index))
+    df = df.reindex(np.random.permutation(df.index))
     train = df[:tr_size]
     test = df[tr_size:tr_size + te_size]
     for classifier in dmc.classifiers.DMCClassifier.__subclasses__():
