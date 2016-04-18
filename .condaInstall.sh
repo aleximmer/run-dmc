@@ -10,5 +10,5 @@ else
         export PATH="$HOME/miniconda/bin:$PATH"
         conda config --set always_yes yes --set changeps1 no
         conda update -q conda
-        conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scikit-learn pandas
+        conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scikit-learn pandas theanets
 fi
