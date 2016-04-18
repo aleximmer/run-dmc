@@ -42,6 +42,8 @@ def unproven_cleansing(df: pd.DataFrame) -> pd.DataFrame:
     df.productGroup = np.nan_to_num(df.productGroup).astype(np.int)
     # 0. (no voucher) is mostly appearing in data thus we can easily substitute
     df.voucherID = np.nan_to_num(df.voucherID).astype(np.int)
+    # incorrect substitution for rrp, use imputation later
+    df.rrp = np.nan_to_num(df.rrp).astype(np.int)
     return df
 
 
