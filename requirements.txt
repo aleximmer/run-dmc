@@ -1,0 +1,14 @@
+climate==0.4.6
+Cython==0.24
+downhill==0.3.2
+numpy==1.11.0
+pandas==0.18.0
+plac==0.9.1
+python-dateutil==2.5.2
+pytz==2016.3
+scikit-learn==0.17.1
+scipy==0.17.0
+six==1.10.0
+sklearn==0.0
+theanets==0.7.3
+Theano==0.8.1
