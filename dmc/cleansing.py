@@ -20,9 +20,12 @@ def assert_constraints(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop data which doesn't comply with constraints"""
+    """Drop data which doesn't comply with constraints
+    Dropped rows would be """
     df = df[df.quantity > 0]
     df = df[df.quantity >= df.returnQuantity]
+    # nans in these rows definitely have returnQuantity == 0
+    df = df.dropna(subset=['voucherID', 'rrp', 'productGroup'])
     return df
 
 
