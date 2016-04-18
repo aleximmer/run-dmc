@@ -1,8 +1,35 @@
 import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 
 def encode_features(df: pd.DataFrame) -> pd.DataFrame:
     """Encode categorical features"""
+    encode_label = ['paymentMethod', 'sizeCode']
+    encode_int = ['deviceID', 'orderID', 'customerID',
+                  'articleID', 'productGroup', 'voucherID']
+    label_enc = LabelEncoder()
+    one_hot_enc = OneHotEncoder(sparse=False)
+
+    for feat in encode_label:
+        V = df[feat].as_matrix().T
+        V_lab = label_enc.fit_transform(V).reshape(-1, 1)
+        V_enc = one_hot_enc.fit_transform(V_lab)
+        df = extend_dataframe(df, V_enc, feat)
+
+    for header in encode_int:
+        V = df[header].as_matrix().reshape(-1, 1)
+        V_enc = one_hot_enc.fit_transform(V)
+        df = extend_dataframe(df, V_enc, header)
+
+    return df
+
+
+def extend_dataframe(df: pd.DataFrame, M: np.array, name: str) -> pd.DataFrame:
+    print(M.shape)
+    for i, col in enumerate(M.T):
+        col_name = str(i) + name
+        df[col_name] = col
     return df
 
 
