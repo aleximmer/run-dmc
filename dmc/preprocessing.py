@@ -25,6 +25,8 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df = same_article_surplus(df)
     df = same_article_same_size_surplus(df)
     df = same_article_same_color_surplus(df)
+    df = total_order_share(df)
+    df = voucher_saving(df)
     return df
 
 
@@ -37,23 +39,36 @@ def customer_return_probability(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def same_article_surplus(df: pd.DataFrame) -> pd.DataFrame:
-    article_group = df.groupby(['orderID', 'articleID'])['quantity'].sum()
+    article_group = df.groupby(['orderID', 'articleID']).quantity.sum()
     index = list(zip(df.orderID, df.articleID))
     df['surplusArticleQuantity'] = list(article_group.loc[index]) - df.quantity
     return df
 
 
 def same_article_same_size_surplus(df: pd.DataFrame) -> pd.DataFrame:
-    article_size_group = df.groupby(['orderID', 'articleID', 'sizeCode'])['quantity'].sum()
+    article_size_group = df.groupby(['orderID', 'articleID', 'sizeCode']).quantity.sum()
     index = list(zip(df.orderID, df.articleID, df.sizeCode))
     df['surplusArticleSizeQuantity'] = list(article_size_group.loc[index]) - df.quantity
     return df
 
 
 def same_article_same_color_surplus(df: pd.DataFrame) -> pd.DataFrame:
-    article_size_group = df.groupby(['orderID', 'articleID', 'colorCode'])['quantity'].sum()
+    article_size_group = df.groupby(['orderID', 'articleID', 'colorCode']).quantity.sum()
     index = list(zip(df.orderID, df.articleID, df.colorCode))
     df['surplusArticleColorQuantity'] = list(article_size_group.loc[index]) - df.quantity
+    return df
+
+
+def total_order_share(df: pd.DataFrame) -> pd.DataFrame:
+    order_prices = df.groupby(['orderID']).price.sum()
+    df['totalOrderShare'] = df.price / list(order_prices.loc[df.orderID])
+    return df
+
+
+def voucher_saving(df: pd.DataFrame) -> pd.DataFrame:
+    order_prices = df.groupby(['orderID']).price.sum()
+    voucher_amounts = df.groupby(['orderID']).voucherAmount.sum()
+    df['voucherSavings'] = list(voucher_amounts.loc[df.orderID] / order_prices.loc[df.orderID])
     return df
 
 

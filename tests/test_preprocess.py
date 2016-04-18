@@ -14,3 +14,4 @@ class PreprocessingTest(unittest.TestCase):
     def test_preprocess(self):
         processed_data = dmc.preprocessing.preprocess(self.data)
         self.assertIn('customerReturnProbs', processed_data.columns)
+        self.assertIn('totalOrderShare', processed_data.columns)
