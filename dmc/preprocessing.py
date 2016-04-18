@@ -32,7 +32,6 @@ def encode_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def extend_dataframe(df: pd.DataFrame, M: np.array, name: str) -> pd.DataFrame:
-    print(M.shape)
     for i, col in enumerate(M.T):
         col_name = str(i) + name
         df[col_name] = col
@@ -54,7 +53,7 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['orderDayOfYear'] = df.orderDate.apply(lambda x: x.dayofyear)
     df['orderQuarter'] = df.orderDate.apply(lambda x: x.quarter)
     df['orderSeason'] = df.orderDate.apply(date_to_season)
-    # df = customer_return_probability(df)
+    df = customer_return_probability(df)
     df = same_article_surplus(df)
     df = same_article_same_size_surplus(df)
     df = same_article_same_color_surplus(df)
@@ -66,8 +65,8 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
 def customer_return_probability(df: pd.DataFrame) -> pd.DataFrame:
     returned_articles = df.groupby(['customerID']).returnQuantity.sum()
     bought_articles = df.groupby(['customerID']).quantity.sum()
-    customer_return_probs = returned_articles / bought_articles
-    df['customerReturnProbs'] = list(customer_return_probs.loc[df.customerID])
+    customer_return_prob = returned_articles / bought_articles
+    df['customerReturnProb'] = list(customer_return_prob.loc[df.customerID])
     return df
 
 
