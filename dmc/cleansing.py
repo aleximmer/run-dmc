@@ -28,7 +28,7 @@ def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
 
 def parse_strings(df: pd.DataFrame) -> pd.DataFrame:
     """Convert to float and integer types"""
-    df.orderDate = pd.to_datetime(df['orderDate'])
+    df.orderDate = pd.to_datetime(df.orderDate)
     df.orderID = df.orderID.apply(lambda x: x.replace('a', '')).astype(np.int)
     df.articleID = df.articleID.apply(lambda x: x.replace('i', '')).astype(np.int)
     df.customerID = df.customerID.apply(lambda x: x.replace('c', '')).astype(np.int)
@@ -36,8 +36,18 @@ def parse_strings(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def cleanse(df: pd.DataFrame) -> pd.DataFrame:
+def unproven_cleansing(df: pd.DataFrame) -> pd.DataFrame:
+    """Conversions that are not agreed on or discussed in detail"""
+    # no product group is labeled with zero
+    df.productGroup = np.nan_to_num(df.productGroup).astype(np.int)
+    # 0. (no voucher) is mostly appearing in data thus we can easily substitute
+    df.voucherID = np.nan_to_num(df.voucherID).astype(np.int)
+
+
+def cleanse(df: pd.DataFrame, unproven=False) -> pd.DataFrame:
     df = parse_strings(df)
     df = enforce_constraints(df)
     assert_constraints(df)
+    if unproven:
+        df = unproven_cleansing(df)
     return df
