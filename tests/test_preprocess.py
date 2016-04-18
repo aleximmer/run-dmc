@@ -6,7 +6,7 @@ import dmc
 
 class PreprocessingTest(unittest.TestCase):
     def setUp(self):
-        raw_data = pd.read_csv('data/orders_train.txt', delimiter=';')
+        raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
         raw_data = raw_data.head(50)
         clean_data = dmc.cleansing.cleanse(raw_data)
         self.data = clean_data
