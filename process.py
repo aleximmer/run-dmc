@@ -5,10 +5,9 @@ import dmc
 
 def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
     # shuffle Dataframe
-    data.reindex(np.random.permutation(data.index))
+    df.reindex(np.random.permutation(df.index))
     train = df[:tr_size]
     test = df[tr_size:tr_size+te_size]
-
     for classifier in dmc.classifiers.DMCClassifier.__subclasses__():
         clf = classifier(train)
         res = clf(test)
@@ -16,10 +15,13 @@ def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
         print(precision, ' using ', str(classifier))
 
 
-data = dmc.data_train()
-data = dmc.cleansing.cleanse(data, unproven=True)
-data = dmc.preprocessing.preprocess(data)
+def processed_data() -> pd.DataFrame:
+    data = dmc.data_train()
+    data = dmc.cleansing.cleanse(data, unproven=True)
+    data = dmc.preprocessing.preprocess(data)
+    return data
 
 
 if __name__ == '__main__':
+    data = processed_data()
     eval_classifiers(data, 1000000, 500000)
