@@ -16,3 +16,5 @@ Required
 - `pip3 install -r requirements.txt`
 
 Confirm installation by running `python -m unittest discover`
+
+Modify IPython notebook files using e.g. `jupyter notebook features.ipynb`
