@@ -6,8 +6,9 @@ from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 def encode_features(df: pd.DataFrame) -> pd.DataFrame:
     """Encode categorical features"""
     encode_label = ['paymentMethod', 'sizeCode']
-    encode_int = ['deviceID', 'orderID', 'customerID',
-                  'articleID', 'productGroup', 'voucherID']
+    encode_int = ['deviceID', 'productGroup']
+    leave_out = ['orderID', 'customerID', 'articleID', 'voucherID']
+
     label_enc = LabelEncoder()
     one_hot_enc = OneHotEncoder(sparse=False)
 
@@ -16,11 +17,16 @@ def encode_features(df: pd.DataFrame) -> pd.DataFrame:
         V_lab = label_enc.fit_transform(V).reshape(-1, 1)
         V_enc = one_hot_enc.fit_transform(V_lab)
         df = extend_dataframe(df, V_enc, feat)
+        del df[feat]
 
-    for header in encode_int:
-        V = df[header].as_matrix().reshape(-1, 1)
+    for feat in encode_int:
+        V = df[feat].as_matrix().reshape(-1, 1)
         V_enc = one_hot_enc.fit_transform(V)
-        df = extend_dataframe(df, V_enc, header)
+        df = extend_dataframe(df, V_enc, feat)
+        del df[feat]
+
+    for feat in leave_out:
+        del df[feat]
 
     return df
 
@@ -48,7 +54,7 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['orderDayOfYear'] = df.orderDate.apply(lambda x: x.dayofyear)
     df['orderQuarter'] = df.orderDate.apply(lambda x: x.quarter)
     df['orderSeason'] = df.orderDate.apply(date_to_season)
-    df = customer_return_probability(df)
+    # df = customer_return_probability(df)
     df = same_article_surplus(df)
     df = same_article_same_size_surplus(df)
     df = same_article_same_color_surplus(df)
