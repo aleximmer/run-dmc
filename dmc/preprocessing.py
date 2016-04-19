@@ -53,6 +53,7 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['orderDayOfYear'] = df.orderDate.apply(lambda x: x.dayofyear)
     df['orderQuarter'] = df.orderDate.apply(lambda x: x.quarter)
     df['orderSeason'] = df.orderDate.apply(date_to_season)
+    df = color_return_probability(df)
     df = size_return_probability(df)
     df = customer_return_probability(df)
     df = product_group_return_probability(df)
@@ -61,6 +62,14 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df = same_article_same_color_surplus(df)
     df = total_order_share(df)
     df = voucher_saving(df)
+    return df
+
+
+def color_return_probability(df: pd.DataFrame) -> pd.DataFrame:
+    returned_articles = df.groupby(['colorCode']).returnQuantity.sum()
+    bought_articles = df.groupby(['colorCode']).quantity.sum()
+    color_return_prob = returned_articles / bought_articles
+    df['colorReturnProb'] = list(color_return_prob.loc[df.colorCode])
     return df
 
 
