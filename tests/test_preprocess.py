@@ -24,6 +24,7 @@ class PreprocessingTest(unittest.TestCase):
         self.assertIn('customerReturnProb', processed_data.columns)
         self.assertIn('totalOrderShare', processed_data.columns)
         self.assertIn('productGroupReturnProb', processed_data.columns)
+        self.assertIn('sizeReturnProb', processed_data.columns)
 
     def test_product_group_return_probability(self):
         processed_data = dmc.preprocessing.preprocess(self.data)
@@ -33,4 +34,14 @@ class PreprocessingTest(unittest.TestCase):
                                            '1productGroup': [0., 0., 1., 1., 1., 1., 1., 1.],
                                            'productGroupReturnProb': [0., 0., 1 / 6, 1 / 6,
                                                                       1 / 6, 1 / 6, 1 / 6, 1 / 6]})
+        self.assertTrue(self.content_equal(actual_processed, expected_processed))
+
+    def test_size_return_probability(self):
+        processed_data = dmc.preprocessing.preprocess(self.data)
+        actual_processed = processed_data[
+            ['0sizeCode', '1sizeCode', '2sizeCode', 'sizeReturnProb']]
+        expected_processed = pd.DataFrame({'0sizeCode': [0., 0., 1., 1., 0., 0., 0., 0.],
+                                           '1sizeCode': [0., 0., 0., 0., 1., 1., 1., 0.],
+                                           '2sizeCode': [1., 1., 0., 0., 0., 0., 0., 1.],
+                                           'sizeReturnProb': [0., 0., 0.5, 0.5, 0, 0, 0, 0]})
         self.assertTrue(self.content_equal(actual_processed, expected_processed))
