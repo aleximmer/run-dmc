@@ -24,6 +24,7 @@ class PreprocessingTest(unittest.TestCase):
         self.assertIn('customerReturnProb', processed_data.columns)
         self.assertIn('totalOrderShare', processed_data.columns)
         self.assertIn('colorReturnProb', processed_data.columns)
+        self.assertIn('sizeReturnProb', processed_data.columns)
 
     def test_color_return_probability(self):
         processed_data = dmc.preprocessing.preprocess(self.data)
@@ -32,4 +33,14 @@ class PreprocessingTest(unittest.TestCase):
         expected_processed = pd.DataFrame({'colorCode': [1972, 3854, 2974, 1992,
                                                          1968, 1972, 1001, 3976],
                                            'colorReturnProb': [0., 0., 0., 1., 0., 0., 0., 0.]})
+        self.assertTrue(self.content_equal(actual_processed, expected_processed))
+
+    def test_size_return_probability(self):
+        processed_data = dmc.preprocessing.preprocess(self.data)
+        actual_processed = processed_data[
+            ['0sizeCode', '1sizeCode', '2sizeCode', 'sizeReturnProb']]
+        expected_processed = pd.DataFrame({'0sizeCode': [0., 0., 1., 1., 0., 0., 0., 0.],
+                                           '1sizeCode': [0., 0., 0., 0., 1., 1., 1., 0.],
+                                           '2sizeCode': [1., 1., 0., 0., 0., 0., 0., 1.],
+                                           'sizeReturnProb': [0., 0., 0.5, 0.5, 0, 0, 0, 0]})
         self.assertTrue(self.content_equal(actual_processed, expected_processed))
