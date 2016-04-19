@@ -24,7 +24,6 @@ class PreprocessingTest(unittest.TestCase):
         self.assertIn('customerReturnProb', processed_data.columns)
         self.assertIn('totalOrderShare', processed_data.columns)
         self.assertIn('productGroupReturnProb', processed_data.columns)
-        self.assertIn('sizeReturnProb', processed_data.columns)
         self.assertIn('colorReturnProb', processed_data.columns)
         self.assertIn('sizeReturnProb', processed_data.columns)
 
