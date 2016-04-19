@@ -75,8 +75,7 @@ def product_group_return_probability(df: pd.DataFrame) -> pd.DataFrame:
     returned_articles = df.groupby(['productGroup']).returnQuantity.sum()
     bought_articles = df.groupby(['productGroup']).quantity.sum()
     product_group_return_prob = returned_articles / bought_articles
-    df['productGroupReturnProb'] = list(
-        product_group_return_prob.loc[df.productGroup])
+    df['productGroupReturnProb'] = list(product_group_return_prob.loc[df.productGroup])
     return df
 
 
