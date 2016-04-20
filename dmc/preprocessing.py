@@ -56,6 +56,7 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df = color_return_probability(df)
     df = size_return_probability(df)
     df = customer_return_probability(df)
+    df = product_group_return_probability(df)
     df = same_article_surplus(df)
     df = same_article_same_size_surplus(df)
     df = same_article_same_color_surplus(df)
@@ -85,6 +86,14 @@ def customer_return_probability(df: pd.DataFrame) -> pd.DataFrame:
     bought_articles = df.groupby(['customerID']).quantity.sum()
     customer_return_prob = returned_articles / bought_articles
     df['customerReturnProb'] = list(customer_return_prob.loc[df.customerID])
+    return df
+
+
+def product_group_return_probability(df: pd.DataFrame) -> pd.DataFrame:
+    returned_articles = df.groupby(['productGroup']).returnQuantity.sum()
+    bought_articles = df.groupby(['productGroup']).quantity.sum()
+    product_group_return_prob = returned_articles / bought_articles
+    df['productGroupReturnProb'] = list(product_group_return_prob.loc[df.productGroup])
     return df
 
 

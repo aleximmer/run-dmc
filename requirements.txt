@@ -12,3 +12,6 @@ six==1.10.0
 sklearn==0.0
 theanets==0.7.3
 Theano==0.8.1
+jupyter-client==4.2.2
+jupyter-core==4.1.0
+notebook==4.2.0
