@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 import dmc
+import os.path
+
+processed_file = '/data/processed_train.csv'
 
 
 def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
@@ -16,9 +19,13 @@ def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
 
 
 def processed_data() -> pd.DataFrame:
+    rel_file_path = os.path.join(os.path.dirname(__file__) + processed_file)
+    if os.path.isfile(rel_file_path):
+        return pd.DataFrame.from_csv(rel_file_path)
     data = dmc.data_train()
     data = dmc.cleansing.cleanse(data, unproven=True)
     data = dmc.preprocessing.preprocess(data)
+    data.to_csv(rel_file_path, sep=',')
     return data
 
 
