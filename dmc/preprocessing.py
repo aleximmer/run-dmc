@@ -1,48 +1,12 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
-
-
-def encode_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Encode categorical features"""
-    encode_label = ['paymentMethod', 'sizeCode']
-    encode_int = ['deviceID', 'productGroup']
-    leave_out = ['orderID', 'customerID', 'articleID', 'voucherID']
-
-    label_enc = LabelEncoder()
-    one_hot_enc = OneHotEncoder(sparse=False)
-
-    for feat in encode_label:
-        V = df[feat].as_matrix().T
-        V_lab = label_enc.fit_transform(V).reshape(-1, 1)
-        V_enc = one_hot_enc.fit_transform(V_lab)
-        df = extend_dataframe(df, V_enc, feat)
-        del df[feat]
-
-    for feat in encode_int:
-        V = df[feat].as_matrix().reshape(-1, 1)
-        V_enc = one_hot_enc.fit_transform(V)
-        df = extend_dataframe(df, V_enc, feat)
-        del df[feat]
-
-    for feat in leave_out:
-        del df[feat]
-
-    return df
-
-
-def extend_dataframe(df: pd.DataFrame, M: np.array, name: str) -> pd.DataFrame:
-    for i, col in enumerate(M.T):
-        col_name = str(i) + name
-        df[col_name] = col
-    return df
 
 
 def add_features(df: pd.DataFrame) -> pd.DataFrame:
     """Add new features to the DataFrame"""
     df['productPrice'] = df.price / df.quantity
     df['totalSavings'] = df.rrp - df.productPrice
-    df['relativeSavings'] = 1 - df.productPrice / df.rrp
+    df['relativeSavings'] = np.nan_to_num(1 - df.productPrice / df.rrp)
     df['orderYear'] = df.orderDate.apply(lambda x: x.year)
     df['orderMonth'] = df.orderDate.apply(lambda x: x.month)
     df['orderDay'] = df.orderDate.apply(lambda x: x.day)
@@ -157,5 +121,4 @@ def merge_features(df: pd.DataFrame, feature_dfs: list) -> pd.DataFrame:
 
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     df = add_features(df)
-    df = encode_features(df)
     return df
