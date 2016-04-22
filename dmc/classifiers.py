@@ -24,7 +24,7 @@ class DMCClassifier:
         assert target_feature in self.ignore_features
         self.X = X if X is not None else self.feature_matrix(df)
         self.Y = Y if Y is not None else self.label_vector(df)
-        assert len(Y) == len(X.T)
+        assert len(self.Y) == len(self.X)
         self.clf = self.classifier() if self.classifier else None
 
     def __call__(self, df: pd.DataFrame) -> np.array:
@@ -40,7 +40,7 @@ class DMCClassifier:
 
     def feature_matrix(self, df: pd.DataFrame) -> np.array:
         X = np.empty((len(df), 0))
-        for ft in [ft for ft in df.column if ft not in self.ignore_features]:
+        for ft in [ft for ft in df.columns if ft not in self.ignore_features]:
             X = np.append(X, encode_features(df, ft), axis=1)
         return X.astype(np.float32)
 
