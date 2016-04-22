@@ -27,6 +27,10 @@ def processed_data() -> pd.DataFrame:
     data = dmc.data_train()
     data = dmc.cleansing.cleanse(data, unproven=True)
     data = dmc.preprocessing.preprocess(data)
+    feature_dfs = dmc.data_features()
+    feature_dfs = [dmc.cleansing.cleanse(df, unproven=True) for df in feature_dfs]
+    data = dmc.preprocessing.merge_features(data, feature_dfs)
+    print('Finished processing. Dumping results to {}.'.format(rel_file_path))
     data.to_csv(rel_file_path, sep=',')
     return data
 

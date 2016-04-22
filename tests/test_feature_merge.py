@@ -10,21 +10,14 @@ class FeatureMergeTest(unittest.TestCase):
         self.df = pd.read_csv('tests/test_data.txt', delimiter=';')
         self.df = dmc.cleansing.cleanse(self.df)
 
-    def content_equal(self, a, b):
-        try:
-            assert_frame_equal(
-                a.sort_index(axis=1), b.sort_index(axis=1), check_names=True)
-            return True
-        except (AssertionError, ValueError, TypeError):
-            return False
-
     def test_single_merge(self):
         feature_df = self.df.copy()
         feature_df['f1'] = pd.Series(np.arange(len(feature_df.index)), index=feature_df.index)
         feature_df['f2'] = pd.Series(np.arange(len(feature_df.index)), index=feature_df.index)
+        feature_columns = feature_df.columns.values.tolist()
 
         merged_df = dmc.preprocessing.merge_features(self.df, [feature_df])
-        self.assertEqual(len(merged_df.columns), len(feature_df.columns))
+        self.assertEqual(len(merged_df.columns), len(feature_columns))
         self.assertIn('f1', merged_df)
         self.assertIn('f2', merged_df)
 
