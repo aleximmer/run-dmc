@@ -23,9 +23,11 @@ def transform_target_vector(df: pd.DataFrame) -> np.array:
     return np.squeeze(df.as_matrix(columns=['returnQuantity'])).astype(np.int32)
 
 
-def transform(df: pd.DataFrame, ignore_features=None) -> (np.array, np.array):
+def transform(df: pd.DataFrame, ignore_features=None, scaler=None) -> (np.array, np.array):
     ignore_features = ignore_features if ignore_features is not None \
         else default_ignore_features
     X = transform_feature_matrix(df, ignore_features)
+    if scaler is not None:
+        X = scaler(X)
     Y = transform_target_vector(df)
     return X, Y
