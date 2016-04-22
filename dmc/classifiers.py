@@ -1,3 +1,4 @@
+from copy import deepcopy
 import pandas as pd
 import numpy as np
 import theanets as tn
@@ -6,13 +7,24 @@ from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 
+from dmc.encoding import encode_features
+
+
+target_feature = 'returnQuantity'
+default_ignore_features = ['returnQuantity', 'orderID',
+                           'orderDate', 'customerID']
+
 
 class DMCClassifier:
     classifier = None
 
-    def __init__(self, df: pd.DataFrame):
-        self.X = self.feature_matrix(df)
-        self.Y = self.label_vector(df)
+    def __init__(self, df: pd.DataFrame, ignore_features=None, X=None, Y=None):
+        self.ignore_features = ignore_features if ignore_features is not None \
+            else deepcopy(default_ignore_features)
+        assert target_feature in self.ignore_features
+        self.X = X if X is not None else self.feature_matrix(df)
+        self.Y = Y if Y is not None else self.label_vector(df)
+        assert len(Y) == len(X.T)
         self.clf = self.classifier() if self.classifier else None
 
     def __call__(self, df: pd.DataFrame) -> np.array:
@@ -23,31 +35,14 @@ class DMCClassifier:
         self.clf.fit(self.X, self.Y)
 
     def predict(self, df: pd.DataFrame) -> np.array:
-        Y = self.feature_matrix(df)
-        return self.clf.predict(Y)
+        X = self.feature_matrix(df)
+        return self.clf.predict(X)
 
-    @classmethod
-    def feature_matrix(cls, df: pd.DataFrame) -> np.array:
-        cols = ['colorCode', 'quantity', 'price', 'rrp', 'voucherAmount',
-                'productPrice', 'totalSavings',
-                'orderYear', 'orderMonth', 'orderDay', 'orderWeekDay', 'orderDayOfYear',
-                'orderWeek', 'orderWeekOfYear', 'orderQuarter', 'orderSeason',
-                'surplusArticleQuantity', 'surplusArticleSizeQuantity',
-                'surplusArticleColorQuantity', '0paymentMethod', '1paymentMethod',
-                '2paymentMethod', '3paymentMethod', '4paymentMethod', '5paymentMethod',
-                '6paymentMethod', '7paymentMethod', '8paymentMethod', '0sizeCode',
-                '1sizeCode', '2sizeCode', '3sizeCode', '4sizeCode', '5sizeCode',
-                '6sizeCode', '7sizeCode', '8sizeCode', '9sizeCode', '10sizeCode',
-                '11sizeCode', '12sizeCode', '13sizeCode', '14sizeCode', '15sizeCode',
-                '16sizeCode', '17sizeCode', '18sizeCode', '19sizeCode', '20sizeCode',
-                '21sizeCode', '22sizeCode', '23sizeCode', '24sizeCode', '25sizeCode',
-                '26sizeCode', '27sizeCode', '0deviceID', '1deviceID', '2deviceID',
-                '3deviceID', '4deviceID', '0productGroup', '1productGroup',
-                '2productGroup', '3productGroup', '4productGroup', '5productGroup',
-                '6productGroup', '7productGroup', '8productGroup', '9productGroup',
-                '10productGroup', '11productGroup', '12productGroup', '13productGroup',
-                '14productGroup', '15productGroup', '16productGroup']
-        return df.as_matrix(columns=cols).astype(np.float32)
+    def feature_matrix(self, df: pd.DataFrame) -> np.array:
+        X = np.empty((len(df), 0))
+        for ft in [ft for ft in df.column if ft not in self.ignore_features]:
+            X = np.append(X, encode_features(df, ft), axis=1)
+        return X.astype(np.float32)
 
     @classmethod
     def label_vector(cls, df: pd.DataFrame) -> np.array:
