@@ -63,3 +63,5 @@ target/
 
 #Virtualenv
 venv
+
+/data/processed_train.csv
