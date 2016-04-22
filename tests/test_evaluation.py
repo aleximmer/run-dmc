@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
-from dmc.evaluation import dmc_cost, dmc_cost_relative, precision
+import pandas as pd
+from dmc.evaluation import dmc_cost, dmc_cost_relative, precision, gini_ratio
 
 
 class DMCCostTest(unittest.TestCase):
@@ -19,3 +20,7 @@ class DMCCostTest(unittest.TestCase):
     def test_precision(self):
         res = precision(self.a, self.b)
         self.assertEqual(res, 0.4)
+
+    def test_gini_ratio(self):
+        self.assertAlmostEquals(0.8, np.round(gini_ratio(self.a), decimals=1))
+        self.assertAlmostEquals(0.72, np.round(gini_ratio(self.b), decimals=2))
