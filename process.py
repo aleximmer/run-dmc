@@ -10,7 +10,7 @@ def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
     # shuffle Dataframe
     df = df.reindex(np.random.permutation(df.index))
     df = df[:te_size + tr_size]
-    X, Y = dmc.transformation.transform(df)
+    X, Y = dmc.transformation.transform(df, scaler=None)
     train = X[:tr_size], Y[:tr_size]
     test = X[tr_size:tr_size + te_size], Y[tr_size:tr_size + te_size]
     for classifier in dmc.classifiers.DMCClassifier.__subclasses__():
@@ -37,4 +37,4 @@ def processed_data() -> pd.DataFrame:
 
 if __name__ == '__main__':
     data = processed_data()
-    eval_classifiers(data, 1000000, 500000)
+    eval_classifiers(data, 10000, 50000)
