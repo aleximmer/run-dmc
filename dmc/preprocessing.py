@@ -143,6 +143,18 @@ def date_to_season(date):
     return 1
 
 
+def merge_features(df: pd.DataFrame, feature_dfs: list) -> pd.DataFrame:
+    original_keys = df.columns.values.tolist()
+    for feature_df in feature_dfs:
+        # Drop all columns which are in both DFs but not in original_keys
+        left_keys = df.columns.values.tolist()
+        right_keys = feature_df.columns.values.tolist()
+        conflicting_keys = list((set(left_keys) & set(right_keys)) - set(original_keys))
+        feature_df.drop(conflicting_keys, inplace=True, axis=1)
+        df = pd.merge(df, feature_df, how='left', on=original_keys)
+    return df
+
+
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     df = add_features(df)
     df = encode_features(df)
