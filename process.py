@@ -9,12 +9,14 @@ processed_file = '/data/processed_train.csv'
 def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
     # shuffle Dataframe
     df = df.reindex(np.random.permutation(df.index))
-    train = df[:tr_size]
-    test = df[tr_size:tr_size + te_size]
+    df = df[:te_size + tr_size]
+    X, Y = dmc.transformation.transform(df)
+    train = X[:tr_size], Y[:tr_size]
+    test = X[tr_size:tr_size + te_size], Y[tr_size:tr_size + te_size]
     for classifier in dmc.classifiers.DMCClassifier.__subclasses__():
-        clf = classifier(train)
-        res = clf(test)
-        precision = dmc.evaluation.precision(res, clf.label_vector(test).T)
+        clf = classifier(train[0].copy(), train[1].copy())
+        res = clf(test[0])
+        precision = dmc.evaluation.precision(res, test[1])
         print(precision, ' using ', str(classifier))
 
 
