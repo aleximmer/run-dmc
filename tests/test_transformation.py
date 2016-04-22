@@ -4,23 +4,25 @@ import numpy as np
 import dmc
 
 
-class EncodingTest(unittest.TestCase):
+class PreprocessingTest(unittest.TestCase):
     def setUp(self):
         raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
         raw_data = raw_data.head(50)
         clean_data = dmc.cleansing.cleanse(raw_data)
-        self.data = clean_data
+        self.X, self.Y = dmc.transformation.transform(clean_data)
 
     def test_product_group_encoding(self):
-        X = dmc.encoding.encode_features(self.data, 'productGroup')
-        self.assertTrue((X.T[0] == np.array([1., 1., 0., 0., 0., 0., 0., 0.])).all())
-        self.assertTrue((X.T[1] == np.array([0., 0., 1., 1., 1., 1., 1., 1.])).all())
+        self.assertTrue((self.X.T[11] == np.array([1., 1., 0., 0., 0., 0., 0., 0.])).all())
+        self.assertTrue((self.X.T[12] == np.array([0., 0., 1., 1., 1., 1., 1., 1.])).all())
 
     def test_size_code_encoding(self):
-        X = dmc.encoding.encode_features(self.data, 'sizeCode')
         exp = np.array([
             [0., 0., 1., 1., 0., 0., 0., 0.],
             [0., 0., 0., 0., 1., 1., 1., 0.],
             [1., 1., 0., 0., 0., 0., 0., 1.]
         ])
-        self.assertTrue((exp.T == X).all())
+        self.assertTrue((exp == self.X.T[8:11]).all())
+
+    def test_target_vector(self):
+        exp = np.array([0, 0, 0, 1, 0, 0, 0, 0])
+        self.assertTrue((exp == self.Y).all())
