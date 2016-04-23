@@ -5,7 +5,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, \
-    BaggingClassifier
+    BaggingClassifier, AdaBoostClassifier
 
 
 class DMCClassifier:
@@ -75,7 +75,38 @@ class TreeBag(BagEnsemble):
     classifier = DecisionTreeClassifier()
 
 
+class BayesBag(BagEnsemble):
+    classifier = BernoulliNB()
+
+
 class SVMBag(BagEnsemble):
+    def __init__(self, X: np.array, Y: np.array):
+        self.classifier = SVC(decision_function_shape='ovo')
+        super().__init__(X, Y)
+
+
+class AdaBoostEnsemble(DMCClassifier):
+    estimators = 50
+    learning_rate = .5
+    algorithm = 'SAMME.R'
+
+    def __init__(self, X: np.array, Y: np.array):
+        super().__init__(X, Y)
+        self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
+                                      learning_rate=self.learning_rate, algorithm=self.algorithm)
+
+
+class AdaTree(AdaBoostEnsemble):
+    classifier = DecisionTreeClassifier()
+
+
+class AdaBayes(AdaBoostEnsemble):
+    classifier = BernoulliNB()
+
+
+class AdaSVM(AdaBoostEnsemble):
+    algorithm = 'SAMME'
+
     def __init__(self, X: np.array, Y: np.array):
         self.classifier = SVC(decision_function_shape='ovo')
         super().__init__(X, Y)
