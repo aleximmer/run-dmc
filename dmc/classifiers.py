@@ -29,7 +29,7 @@ class DMCClassifier:
 
 
 class DecisionTree(DMCClassifier):
-    classifier = DecisionTreeClassifier()
+    clf = DecisionTreeClassifier()
 
 
 class Forest(DMCClassifier):
