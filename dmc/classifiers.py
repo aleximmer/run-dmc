@@ -4,17 +4,17 @@ import theanets as tn
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, \
+    BaggingClassifier, AdaBoostClassifier
 
 
 class DMCClassifier:
-    classifier = None
+    clf = None
 
     def __init__(self, X: np.array, Y: np.array):
         assert len(Y) == len(X)
         self.X = X
         self.Y = Y
-        self.clf = self.classifier() if self.classifier else None
 
     def __call__(self, df: pd.DataFrame) -> np.array:
         self.fit()
@@ -29,7 +29,7 @@ class DMCClassifier:
 
 
 class DecisionTree(DMCClassifier):
-    classifier = DecisionTreeClassifier
+    clf = DecisionTreeClassifier()
 
 
 class Forest(DMCClassifier):
@@ -39,7 +39,7 @@ class Forest(DMCClassifier):
 
 
 class NaiveBayes(DMCClassifier):
-    classifier = BernoulliNB
+    clf = BernoulliNB()
 
 
 class SVM(DMCClassifier):
@@ -57,3 +57,57 @@ class NeuralNetwork(DMCClassifier):
     def fit(self):
         self.clf.train((self.X, self.Y), algo='sgd', learning_rate=1e-4, momentum=0.9)
         return self
+
+
+class BagEnsemble(DMCClassifier):
+    classifier = None
+    estimators = 10
+    max_features = .5
+    max_samples = .5
+
+    def __init__(self, X: np.array, Y: np.array):
+        super().__init__(X, Y)
+        self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
+                                     max_samples=self.max_samples, max_features=self.max_features)
+
+
+class TreeBag(BagEnsemble):
+    classifier = DecisionTreeClassifier()
+
+
+class BayesBag(BagEnsemble):
+    classifier = BernoulliNB()
+
+
+class SVMBag(BagEnsemble):
+    def __init__(self, X: np.array, Y: np.array):
+        self.classifier = SVC(decision_function_shape='ovo')
+        super().__init__(X, Y)
+
+
+class AdaBoostEnsemble(DMCClassifier):
+    classifier = None
+    estimators = 50
+    learning_rate = .5
+    algorithm = 'SAMME.R'
+
+    def __init__(self, X: np.array, Y: np.array):
+        super().__init__(X, Y)
+        self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
+                                      learning_rate=self.learning_rate, algorithm=self.algorithm)
+
+
+class AdaTree(AdaBoostEnsemble):
+    classifier = DecisionTreeClassifier()
+
+
+class AdaBayes(AdaBoostEnsemble):
+    classifier = BernoulliNB()
+
+
+class AdaSVM(AdaBoostEnsemble):
+    algorithm = 'SAMME'
+
+    def __init__(self, X: np.array, Y: np.array):
+        self.classifier = SVC(decision_function_shape='ovo')
+        super().__init__(X, Y)
