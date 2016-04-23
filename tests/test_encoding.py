@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 import numpy as np
-import dmc
+import dmc.encoding
 
 
 class EncodingTest(unittest.TestCase):
