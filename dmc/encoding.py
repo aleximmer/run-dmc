@@ -3,12 +3,13 @@ import numpy as np
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 
+encode_label = ['paymentMethod', 'sizeCode']
+encode_int = ['deviceID', 'productGroup', 'articleID',
+              'voucherID', 'customerID']
+
+
 def encode_features(df: pd.DataFrame, ft: str) -> np.array:
     """Encode categorical features"""
-    encode_label = ['paymentMethod', 'sizeCode']
-    encode_int = ['deviceID', 'productGroup', 'articleID',
-                  'voucherID', 'customerID']
-
     if ft not in set(encode_label + encode_int):
         return df.as_matrix(columns=[ft])
 
