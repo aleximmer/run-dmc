@@ -9,13 +9,12 @@ from sklearn.ensemble import RandomForestClassifier, \
 
 
 class DMCClassifier:
-    classifier = None
+    clf = None
 
     def __init__(self, X: np.array, Y: np.array):
         assert len(Y) == len(X)
         self.X = X
         self.Y = Y
-        self.clf = self.classifier if self.classifier else None
 
     def __call__(self, df: pd.DataFrame) -> np.array:
         self.fit()
@@ -40,7 +39,7 @@ class Forest(DMCClassifier):
 
 
 class NaiveBayes(DMCClassifier):
-    classifier = BernoulliNB()
+    clf = BernoulliNB()
 
 
 class SVM(DMCClassifier):
@@ -61,6 +60,7 @@ class NeuralNetwork(DMCClassifier):
 
 
 class BagEnsemble(DMCClassifier):
+    classifier = None
     estimators = 10
     max_features = .5
     max_samples = .5
@@ -86,6 +86,7 @@ class SVMBag(BagEnsemble):
 
 
 class AdaBoostEnsemble(DMCClassifier):
+    classifier = None
     estimators = 50
     learning_rate = .5
     algorithm = 'SAMME.R'
