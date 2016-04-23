@@ -6,9 +6,12 @@ import os.path
 processed_file = '/data/processed_train.csv'
 
 
+def shuffle(df: pd.DataFrame) -> pd.DataFrame:
+    return df.reindex(np.random.permutation(df.index))
+
+
 def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
-    # shuffle Dataframe
-    df = df.reindex(np.random.permutation(df.index))
+    df = shuffle(df)
     df = df[:te_size + tr_size]
     X, Y = dmc.transformation.transform(df, scaler=dmc.normalization.normalize_features)
     train = X[:tr_size], Y[:tr_size]
@@ -20,8 +23,15 @@ def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
         print(precision, ' using ', str(classifier))
 
 
+def eval_features(df: pd.DataFrame, size):
+    df = shuffle(df)
+    ft_importance = dmc.evaluation.eval_features_by_ensemble(df[:size])
+    print(ft_importance.sort_values('tree', ascending=False))
+
+
 def processed_data() -> pd.DataFrame:
-    rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) + processed_file)
+    rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) +
+                                 processed_file)
     if os.path.isfile(rel_file_path):
         return pd.DataFrame.from_csv(rel_file_path)
     data = dmc.data_train()
@@ -37,4 +47,5 @@ def processed_data() -> pd.DataFrame:
 
 if __name__ == '__main__':
     data = processed_data()
-    eval_classifiers(data, 10000, 50000)
+    eval_classifiers(data, 5000, 5000)
+    eval_features(data, 5000)
