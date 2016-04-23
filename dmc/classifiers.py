@@ -22,6 +22,7 @@ class DMCClassifier:
 
     def fit(self):
         self.clf.fit(self.X, self.Y)
+        return self
 
     def predict(self, X: np.array) -> np.array:
         return self.clf.predict(X)
@@ -55,3 +56,4 @@ class NeuralNetwork(DMCClassifier):
 
     def fit(self):
         self.clf.train((self.X, self.Y), algo='sgd', learning_rate=1e-4, momentum=0.9)
+        return self

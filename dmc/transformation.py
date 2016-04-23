@@ -9,6 +9,17 @@ default_ignore_features = ['returnQuantity', 'orderID',
                            'orderDate', 'customerID']
 
 
+def transform_preserving_headers(df: pd.DataFrame) -> \
+        (np.array, np.array):
+    """Transform specific data space and return list of tuples indicating where features lie"""
+    X, ft_list = np.empty((len(df), 0)), []
+    for ft in [ft for ft in df.columns if ft not in default_ignore_features]:
+        X_enc = encode_features(df, ft)
+        X = np.append(X, encode_features(df, ft), axis=1)
+        ft_list.extend([ft] * len(X_enc.T))
+    return X.astype(np.float32), np.array(ft_list)
+
+
 def transform_feature_matrix(df: pd.DataFrame, ignore_features: list) -> np.array:
     """Used to transform the full data space in order to get all categories"""
     assert target_feature in ignore_features
