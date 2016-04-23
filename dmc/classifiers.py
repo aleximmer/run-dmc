@@ -4,7 +4,8 @@ import theanets as tn
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, \
+    BaggingClassifier, AdaBoostClassifier
 
 
 class DMCClassifier:
@@ -57,3 +58,18 @@ class NeuralNetwork(DMCClassifier):
     def fit(self):
         self.clf.train((self.X, self.Y), algo='sgd', learning_rate=1e-4, momentum=0.9)
         return self
+
+
+class TreeBag(DecisionTree):
+    def __init__(self, X:np.array, Y:np.array):
+        super().__init__(X, Y)
+        self.clf = BaggingClassifier(self.classifier(), n_estimators=100, n_jobs=8,
+                                     max_samples=.5, max_features=.5)
+
+
+class BayesBag(NaiveBayes):
+    def __init__(self, X: np.array, Y: np.array):
+        super().__init__(X, Y)
+        self.clf = BaggingClassifier(self.classifier(), n_estimators=100, n_jobs=8,
+                                     max_samples=.5, max_features=.5)
+
