@@ -4,7 +4,7 @@ import numpy as np
 
 def scale_features(X: np.array) -> np.array:
     """Scale features to mean 0 and unit variance (1)"""
-    scaler = StandardScaler().fit(X)
+    scaler = StandardScaler(with_mean=False).fit(X)
     return scaler.transform(X)
 
 
