@@ -34,16 +34,17 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
     """Returns a MultiIndex'd (col, val) DataFrame
     with gini impurity, average return quantity, and return probability
     """
-    columns = ['gini', 'avgRet', 'retProb']
-    purities = pd.DataFrame(columns=['gini', 'avgRet', 'retProb'], index=pd.MultiIndex(labels=[[], []], levels=[[], []],
-                                                                 names=['column', 'value']))
+    purities = pd.DataFrame(columns=['gini', 'retProb', 'avgRet', 'stdRet'],
+                            index=pd.MultiIndex(labels=[[], []], levels=[[], []],
+                                                names=['column', 'value']))
     feature_cols = df.drop('returnQuantity', axis=1).columns
 
     def column_info(labels: pd.Series) -> pd.Series:
         gini = gini_ratio(labels)
+        prob = labels.astype(bool).sum() / len(labels)
         avg = labels.mean()
-        ret_prob = labels.astype(bool).sum() / len(labels)
-        return gini, avg, ret_prob
+        std = labels.std()
+        return gini, prob, avg, std
 
     for col in feature_cols:
         value_infos = df.groupby(col)['returnQuantity'].apply(column_info)
