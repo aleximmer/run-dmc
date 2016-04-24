@@ -13,6 +13,7 @@ install:
   - pip -V
   - pip install flake8
   - pip install theanets
+  - pip install holidays
 
 before_script:
   - flake8 .
