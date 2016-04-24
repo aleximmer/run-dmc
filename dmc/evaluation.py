@@ -50,7 +50,7 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
         value_infos = df.groupby(col)['returnQuantity'].apply(column_info)
         for i, row in value_infos.iteritems():
             purities.loc[(col, i), :] = row
-
+    print(purities)
     return purities
 
 
