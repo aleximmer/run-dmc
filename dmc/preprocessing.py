@@ -86,7 +86,7 @@ def same_article_same_color_surplus(df: pd.DataFrame) -> pd.DataFrame:
 
 def total_order_share(df: pd.DataFrame) -> pd.DataFrame:
     order_prices = df.groupby(['orderID']).price.sum()
-    df['totalOrderShare'] = df.price / list(order_prices.loc[df.orderID])
+    df['totalOrderShare'] = np.nan_to_num(df.price / list(order_prices.loc[df.orderID]))
     return df
 
 
@@ -94,6 +94,7 @@ def voucher_saving(df: pd.DataFrame) -> pd.DataFrame:
     order_prices = df.groupby(['orderID']).price.sum()
     voucher_amounts = df.groupby(['orderID']).voucherAmount.sum()
     df['voucherSavings'] = list(voucher_amounts.loc[df.orderID] / order_prices.loc[df.orderID])
+    df.voucherSavings = np.nan_to_num(df.voucherSavings)
     return df
 
 

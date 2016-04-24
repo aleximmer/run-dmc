@@ -57,7 +57,8 @@ def handle_blacklisted_features(df: pd.DataFrame) -> pd.DataFrame:
         if key in df.columns:
             df = df.drop(key, 1)
     if ('t_voucher_lastUsedDate_A' not in df.columns and
-       't_voucher_firstUsedDate_A' not in df.columns):
+       't_voucher_firstUsedDate_A' not in df.columns and
+       't_singleItemPrice_per_rrp' not in df.columns):
         return df
     df.t_voucher_firstUsedDate_A = pd.to_datetime(df.t_voucher_firstUsedDate_A)
     df.t_voucher_lastUsedDate_A = pd.to_datetime(df.t_voucher_lastUsedDate_A)
@@ -65,6 +66,8 @@ def handle_blacklisted_features(df: pd.DataFrame) -> pd.DataFrame:
         lambda x: x.dayofyear if x.year == 2014 else x.dayofyear + 365)
     df.t_voucher_lastUsedDate_A = df.t_voucher_lastUsedDate_A.apply(
         lambda x: x.dayofyear if x.year == 2014 else x.dayofyear + 365)
+    df.t_singleItemPrice_per_rrp = np.nan_to_num(df.t_singleItemPrice_per_rrp)
+
     return df
 
 
