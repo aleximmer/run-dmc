@@ -19,20 +19,32 @@ def precision(predicted: np.array, ground_truth: np.array) -> int:
 
 
 def gini_ratio(arr: list) -> float:
+    """Return impurity of array
+    """
     _, counts = np.unique(arr, return_counts=True)
     squared_ratio = np.vectorize(lambda count: np.square(np.divide(count, len(arr))))
     return 1.0 - np.sum(squared_ratio(counts))
 
 
 def feature_purities(df: pd.DataFrame, label_col: str) -> pd.DataFrame:
-    """Returns a dictionary of dictionaries where
-        col_purities['col']['val']
-    is the gini coefficient of the label column taken only
-    the elements in col equal to val.
+    """Returns a dictionary of dictionaries containing the impurity
+    of each column of each unique element in it
     """
-    col_purities = {}
-    for col in df.columns:
-        if not col == label_col:
-            col_purities[col] = (df.groupby(col)[label_col]
-                                 .apply(gini_ratio).to_dict())
-    return col_purities
+    purities = {}
+    feature_cols = df.drop(label_col, axis=1).columns
+    for col in feature_cols:
+        purities[col] = df.groupby(col)[label_col].apply(gini_ratio).to_dict()
+    return purities
+
+
+def column_purities(df: pd.DataFrame, label_col: str) -> pd.Series:
+    feature_cols = df.drop(label_col, axis=1).columns
+    purities = pd.Series(None, index=feature_cols)
+
+    def weighted_gini(group: pd.DataFrame) -> float:
+        return len(group) / len(df) * gini_ratio(group[label_col])
+
+    for col in feature_cols:
+        summed_gini = df.groupby(col).apply(weighted_gini).sum()
+        purities[col] = summed_gini
+    return purities
