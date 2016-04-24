@@ -11,7 +11,7 @@ class DMCCostTest(unittest.TestCase):
         self.df = pd.DataFrame({
             'A': ['a', 'a', 'b', 'b', 'b'],
             'B': [0, 0, 1, 1, 2],
-            'labels': [1, 0, 1, 0, 0]
+            'returnQuantity': [1, 0, 5, 0, 0]
         })
 
     def test_dmc_cost(self):
@@ -31,11 +31,11 @@ class DMCCostTest(unittest.TestCase):
         self.assertAlmostEqual(0.72, np.round(eval.gini_ratio(self.b), decimals=2))
 
     def test_feature_purities(self):
-        purities = eval.feature_purities(self.df, 'labels')
-        self.assertEqual(0.5, purities['A']['a'])
-        self.assertEqual(0.5, purities['B'][0])
+        purities = eval.features(self.df)
+        self.assertEqual(1/3, purities.loc[('A', 'b'), 'retProb'])
+        self.assertEqual(2.5, purities.loc[('B', 1), 'avgRet'])
 
     def test_column_purities(self):
-        purities = eval.column_purities(self.df, 'labels')
+        purities = eval.column_purities(self.df)
         self.assertAlmostEqual(0.47, np.round(purities['A'], 2))
         self.assertEqual(0.4, purities['B'])

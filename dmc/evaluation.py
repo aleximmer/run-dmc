@@ -22,7 +22,7 @@ def precision(predicted: np.array, ground_truth: np.array) -> int:
     return 1 - np.count_nonzero(diff) / len(predicted)
 
 
-def gini_ratio(arr: list) -> float:
+def gini_ratio(arr: pd.Series) -> float:
     """Return impurity of array
     """
     _, counts = np.unique(arr, return_counts=True)
@@ -30,27 +30,40 @@ def gini_ratio(arr: list) -> float:
     return 1.0 - np.sum(squared_ratio(counts))
 
 
-def feature_purities(df: pd.DataFrame, label_col: str) -> pd.DataFrame:
-    """Returns a dictionary of dictionaries containing the impurity
-    of each column of each unique element in it
+def features(df: pd.DataFrame) -> pd.DataFrame:
+    """Returns a MultiIndex'd (col, val) DataFrame
+    with gini impurity, average return quantity, and return probability
     """
-    purities = {}
-    feature_cols = df.drop(label_col, axis=1).columns
+    columns = ['gini', 'avgRet', 'retProb']
+    purities = pd.DataFrame(columns=['gini', 'avgRet', 'retProb'], index=pd.MultiIndex(labels=[[], []], levels=[[], []],
+                                                                 names=['column', 'value']))
+    feature_cols = df.drop('returnQuantity', axis=1).columns
+
+    def column_info(labels: pd.Series) -> pd.Series:
+        gini = gini_ratio(labels)
+        avg = labels.mean()
+        ret_prob = labels.astype(bool).sum() / len(labels)
+        return gini, avg, ret_prob
+
     for col in feature_cols:
-        purities[col] = df.groupby(col)[label_col].apply(gini_ratio).to_dict()
+        value_infos = df.groupby(col)['returnQuantity'].apply(column_info)
+        for i, row in value_infos.iteritems():
+            purities.loc[(col, i), :] = row
+
     return purities
 
 
-def column_purities(df: pd.DataFrame, label_col: str) -> pd.Series:
-    feature_cols = df.drop(label_col, axis=1).columns
+def column_purities(df: pd.DataFrame) -> pd.Series:
+    feature_cols = df.drop('returnQuantity', axis=1).columns
     purities = pd.Series(None, index=feature_cols)
 
     def weighted_gini(group: pd.DataFrame) -> float:
-        return len(group) / len(df) * gini_ratio(group[label_col])
+        return len(group) / len(df) * gini_ratio(group['returnQuantity'])
 
     for col in feature_cols:
         summed_gini = df.groupby(col).apply(weighted_gini).sum()
         purities[col] = summed_gini
+
     return purities
 
 
