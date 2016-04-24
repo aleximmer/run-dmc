@@ -27,15 +27,15 @@ class DMCCostTest(unittest.TestCase):
         self.assertEqual(res, 0.4)
 
     def test_gini_ratio(self):
-        self.assertAlmostEquals(0.8, np.round(eval.gini_ratio(self.a), decimals=1))
-        self.assertAlmostEquals(0.72, np.round(eval.gini_ratio(self.b), decimals=2))
+        self.assertAlmostEqual(0.8, np.round(eval.gini_ratio(self.a), decimals=1))
+        self.assertAlmostEqual(0.72, np.round(eval.gini_ratio(self.b), decimals=2))
 
     def test_feature_purities(self):
         purities = eval.feature_purities(self.df, 'labels')
-        self.assertEquals(0.5, purities['A']['a'])
-        self.assertEquals(0.5, purities['B'][0])
+        self.assertEqual(0.5, purities['A']['a'])
+        self.assertEqual(0.5, purities['B'][0])
 
     def test_column_purities(self):
         purities = eval.column_purities(self.df, 'labels')
-        self.assertAlmostEquals(0.47, np.round(purities['A'], 2))
-        self.assertEquals(0.4, purities['B'])
+        self.assertAlmostEqual(0.47, np.round(purities['A'], 2))
+        self.assertEqual(0.4, purities['B'])
