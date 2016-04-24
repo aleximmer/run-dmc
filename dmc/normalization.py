@@ -1,4 +1,4 @@
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler, MaxAbsScaler
 import numpy as np
 
 
@@ -10,5 +10,5 @@ def scale_features(X: np.array) -> np.array:
 
 def normalize_features(X: np.array) -> np.array:
     """Normalize features by scaling to [0,1]"""
-    scaler = MinMaxScaler().fit(X)
+    scaler = MaxAbsScaler().fit(X)
     return scaler.transform(X)
