@@ -1,5 +1,6 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 from dmc.transformation import transform_preserving_headers, transform_target_vector
 from dmc.classifiers import Forest, DecisionTree
 
@@ -18,6 +19,53 @@ def dmc_cost_relative(predicted: np.array, ground_truth: np.array) -> float:
 def precision(predicted: np.array, ground_truth: np.array) -> int:
     diff = predicted - ground_truth
     return 1 - np.count_nonzero(diff) / len(predicted)
+
+
+def gini_ratio(arr: pd.Series) -> float:
+    """Return impurity of array
+    """
+    _, counts = np.unique(arr, return_counts=True)
+    squared_ratio = np.vectorize(lambda count: np.square(np.divide(count, len(arr))))
+    return 1.0 - np.sum(squared_ratio(counts))
+
+
+def features(df: pd.DataFrame) -> pd.DataFrame:
+    """Returns a MultiIndex'd (col, val) DataFrame
+    with gini impurity, average return quantity, and return probability
+    """
+    purities = pd.DataFrame(columns=['count', 'gini', 'retProb', 'avgRet', 'stdRet'],
+                            index=pd.MultiIndex(labels=[[], []], levels=[[], []],
+                                                names=['column', 'value']))
+    feature_cols = df.drop('returnQuantity', axis=1).columns
+
+    def column_info(labels: pd.Series) -> pd.Series:
+        count = len(labels)
+        gini = gini_ratio(labels)
+        prob = labels.astype(bool).sum() / len(labels)
+        avg = labels.mean()
+        std = labels.std()
+        return count, gini, prob, avg, std
+
+    for col in feature_cols:
+        value_infos = df.groupby(col)['returnQuantity'].apply(column_info)
+        for i, row in value_infos.iteritems():
+            purities.loc[(col, i), :] = row
+
+    return purities
+
+
+def column_purities(df: pd.DataFrame) -> pd.Series:
+    feature_cols = df.drop('returnQuantity', axis=1).columns
+    purities = pd.Series(None, index=feature_cols)
+
+    def weighted_gini(group: pd.DataFrame) -> float:
+        return len(group) / len(df) * gini_ratio(group['returnQuantity'])
+
+    for col in feature_cols:
+        summed_gini = df.groupby(col).apply(weighted_gini).sum()
+        purities[col] = summed_gini
+
+    return purities
 
 
 def eval_features_by_ensemble(df: pd.DataFrame) -> pd.DataFrame:
