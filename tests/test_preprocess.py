@@ -49,3 +49,9 @@ class PreprocessingTest(unittest.TestCase):
         expected_processed = pd.DataFrame({
             'sizeReturnProb': [0., 0., 0.5, 0.5, 0, 0, 0, 0]})
         self.assertTrue(self.content_equal(actual_processed, expected_processed))
+
+    def test_is_german_holiday(self):
+        processed_data = dmc.preprocessing.preprocess(self.data)
+        actual_processed = processed_data[['orderIsOnGermanHoliday']]
+        expected_processed = pd.DataFrame({'orderIsOnGermanHoliday': [1, 0, 0, 1, 1, 1, 1, 1]})
+        self.assertTrue(self.content_equal(actual_processed, expected_processed))
