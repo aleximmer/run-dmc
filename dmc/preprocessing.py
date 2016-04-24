@@ -1,48 +1,12 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
-
-
-def encode_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Encode categorical features"""
-    encode_label = ['paymentMethod', 'sizeCode']
-    encode_int = ['deviceID', 'productGroup']
-    leave_out = ['orderID', 'customerID', 'articleID', 'voucherID']
-
-    label_enc = LabelEncoder()
-    one_hot_enc = OneHotEncoder(sparse=False)
-
-    for feat in encode_label:
-        V = df[feat].as_matrix().T
-        V_lab = label_enc.fit_transform(V).reshape(-1, 1)
-        V_enc = one_hot_enc.fit_transform(V_lab)
-        df = extend_dataframe(df, V_enc, feat)
-        del df[feat]
-
-    for feat in encode_int:
-        V = df[feat].as_matrix().reshape(-1, 1)
-        V_enc = one_hot_enc.fit_transform(V)
-        df = extend_dataframe(df, V_enc, feat)
-        del df[feat]
-
-    for feat in leave_out:
-        del df[feat]
-
-    return df
-
-
-def extend_dataframe(df: pd.DataFrame, M: np.array, name: str) -> pd.DataFrame:
-    for i, col in enumerate(M.T):
-        col_name = str(i) + name
-        df[col_name] = col
-    return df
 
 
 def add_features(df: pd.DataFrame) -> pd.DataFrame:
     """Add new features to the DataFrame"""
     df['productPrice'] = df.price / df.quantity
     df['totalSavings'] = df.rrp - df.productPrice
-    df['relativeSavings'] = 1 - df.productPrice / df.rrp
+    df['relativeSavings'] = np.nan_to_num(1 - df.productPrice / df.rrp)
     df['orderYear'] = df.orderDate.apply(lambda x: x.year)
     df['orderMonth'] = df.orderDate.apply(lambda x: x.month)
     df['orderDay'] = df.orderDate.apply(lambda x: x.day)
@@ -53,7 +17,10 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['orderDayOfYear'] = df.orderDate.apply(lambda x: x.dayofyear)
     df['orderQuarter'] = df.orderDate.apply(lambda x: x.quarter)
     df['orderSeason'] = df.orderDate.apply(date_to_season)
+    df = color_return_probability(df)
+    df = size_return_probability(df)
     df = customer_return_probability(df)
+    df = product_group_return_probability(df)
     df = same_article_surplus(df)
     df = same_article_same_size_surplus(df)
     df = same_article_same_color_surplus(df)
@@ -62,11 +29,35 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def color_return_probability(df: pd.DataFrame) -> pd.DataFrame:
+    returned_articles = df.groupby(['colorCode']).returnQuantity.sum()
+    bought_articles = df.groupby(['colorCode']).quantity.sum()
+    color_return_prob = returned_articles / bought_articles
+    df['colorReturnProb'] = list(color_return_prob.loc[df.colorCode])
+    return df
+
+
+def size_return_probability(df: pd.DataFrame) -> pd.DataFrame:
+    returned_articles = df.groupby(['sizeCode']).returnQuantity.sum()
+    bought_articles = df.groupby(['sizeCode']).quantity.sum()
+    size_return_prob = returned_articles / bought_articles
+    df['sizeReturnProb'] = list(size_return_prob.loc[df.sizeCode])
+    return df
+
+
 def customer_return_probability(df: pd.DataFrame) -> pd.DataFrame:
     returned_articles = df.groupby(['customerID']).returnQuantity.sum()
     bought_articles = df.groupby(['customerID']).quantity.sum()
     customer_return_prob = returned_articles / bought_articles
     df['customerReturnProb'] = list(customer_return_prob.loc[df.customerID])
+    return df
+
+
+def product_group_return_probability(df: pd.DataFrame) -> pd.DataFrame:
+    returned_articles = df.groupby(['productGroup']).returnQuantity.sum()
+    bought_articles = df.groupby(['productGroup']).quantity.sum()
+    product_group_return_prob = returned_articles / bought_articles
+    df['productGroupReturnProb'] = list(product_group_return_prob.loc[df.productGroup])
     return df
 
 
@@ -116,7 +107,18 @@ def date_to_season(date):
     return 1
 
 
+def merge_features(df: pd.DataFrame, feature_dfs: list) -> pd.DataFrame:
+    unique_keys = ['orderID', 'articleID', 'colorCode', 'sizeCode']
+    for feature_df in feature_dfs:
+        # Drop all columns which are in both DFs but not in original_keys
+        left_keys = set(df.columns.values.tolist()) - set(unique_keys)
+        right_keys = set(feature_df.columns.values.tolist()) - set(unique_keys)
+        conflicting_keys = list(set(left_keys) & set(right_keys))
+        feature_df.drop(conflicting_keys, inplace=True, axis=1)
+        df = pd.merge(df, feature_df, how='left', on=unique_keys)
+    return df
+
+
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     df = add_features(df)
-    df = encode_features(df)
     return df

@@ -1,5 +1,9 @@
+import pandas as pd
 import numpy as np
 import pandas as pd
+
+from dmc.transformation import transform_preserving_headers, transform_target_vector
+from dmc.classifiers import Forest, DecisionTree
 
 
 def dmc_cost(predicted: np.array, ground_truth: np.array) -> int:
@@ -48,3 +52,17 @@ def column_purities(df: pd.DataFrame, label_col: str) -> pd.Series:
         summed_gini = df.groupby(col).apply(weighted_gini).sum()
         purities[col] = summed_gini
     return purities
+
+
+def eval_features_by_ensemble(df: pd.DataFrame) -> pd.DataFrame:
+    """Returns a dataframe giving each feature an importance factor"""
+    X, fts = transform_preserving_headers(df)
+    Y = transform_target_vector(df)
+    forest = Forest(X, Y).fit()
+    tree = DecisionTree(X, Y).fit()
+    ft_eval = pd.DataFrame({
+        'feature': fts,
+        'forest': forest.clf.feature_importances_,
+        'tree': tree.clf.feature_importances_,
+    })
+    return ft_eval.groupby('feature').sum()

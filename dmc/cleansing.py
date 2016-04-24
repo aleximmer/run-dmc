@@ -20,9 +20,12 @@ def assert_constraints(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop data which doesn't comply with constraints"""
+    """Drop data which doesn't comply with constraints
+    Dropped rows would be """
     df = df[df.quantity > 0]
     df = df[df.quantity >= df.returnQuantity]
+    # nans in these rows definitely have returnQuantity == 0
+    df = df.dropna(subset=['voucherID', 'rrp', 'productGroup'])
     return df
 
 
@@ -43,7 +46,7 @@ def unproven_cleansing(df: pd.DataFrame) -> pd.DataFrame:
     # 0. (no voucher) is mostly appearing in data thus we can easily substitute
     df.voucherID = np.nan_to_num(df.voucherID).astype(np.int)
     # incorrect substitution for rrp, use imputation later
-    df.rrp = np.nan_to_num(df.rrp).astype(np.int)
+    df.rrp = np.nan_to_num(df.rrp).astype(np.float32)
     return df
 
 
