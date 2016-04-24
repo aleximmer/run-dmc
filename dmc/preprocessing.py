@@ -98,13 +98,14 @@ def voucher_saving(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def date_to_season(date):
-    if date.month <= 3 and date.day <= 22:
-        return 1
-    if date.month <= 6 and date.day <= 22:
+    spring = range(79, 177)  # 03/20
+    summer = range(177, 266)  # 06/21
+    fall = range(266, 356)  # 09/23
+    if date.dayofyear in spring:
         return 2
-    if date.month <= 9 and date.day <= 22:
+    if date.dayofyear in summer:
         return 3
-    if date.month <= 12 and date.day <= 22:
+    if date.dayofyear in fall:
         return 4
     return 1
 
