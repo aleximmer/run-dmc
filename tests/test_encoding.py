@@ -13,11 +13,13 @@ class EncodingTest(unittest.TestCase):
 
     def test_product_group_encoding(self):
         X = dmc.encoding.encode_features(self.data, 'productGroup')
+        X = X.toarray()
         self.assertTrue((X.T[0] == np.array([1., 1., 0., 0., 0., 0., 0., 0.])).all())
         self.assertTrue((X.T[1] == np.array([0., 0., 1., 1., 1., 1., 1., 1.])).all())
 
     def test_size_code_encoding(self):
         X = dmc.encoding.encode_features(self.data, 'sizeCode')
+        X = X.toarray()
         exp = np.array([
             [0., 0., 1., 1., 0., 0., 0., 0.],
             [0., 0., 0., 0., 1., 1., 1., 0.],

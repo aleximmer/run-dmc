@@ -4,12 +4,13 @@ import numpy as np
 import dmc
 
 
-class PreprocessingTest(unittest.TestCase):
+class TransformationTest(unittest.TestCase):
     def setUp(self):
         raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
         raw_data = raw_data.head(50)
         clean_data = dmc.cleansing.cleanse(raw_data)
         self.X, self.Y = dmc.transformation.transform(clean_data)
+        self.X = self.X.toarray()
 
     def test_product_group_encoding(self):
         self.assertTrue((self.X.T[11] == np.array([1., 1., 0., 0., 0., 0., 0., 0.])).all())
