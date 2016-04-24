@@ -4,7 +4,7 @@ from scipy.sparse import csr_matrix
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 
-encode_label = ['paymentMethod', 'sizeCode']
+encode_label = ['paymentMethod', 'sizeCode', 't_customer_preferredPayment']
 encode_int = ['deviceID', 'productGroup', 'articleID',
               'voucherID', 'customerID']
 

@@ -65,6 +65,10 @@ def handle_blacklisted_features(df: pd.DataFrame) -> pd.DataFrame:
         lambda x: x.dayofyear if x.year == 2014 else x.dayofyear + 365)
     df.t_voucher_lastUsedDate_A = df.t_voucher_lastUsedDate_A.apply(
         lambda x: x.dayofyear if x.year == 2014 else x.dayofyear + 365)
+
+    if 't_singleItemPrice_per_rrp' in df.columns:
+        df.t_singleItemPrice_per_rrp = np.nan_to_num(df.t_singleItemPrice_per_rrp)
+
     return df
 
 
