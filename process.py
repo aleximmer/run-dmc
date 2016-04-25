@@ -26,7 +26,7 @@ def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
     train = X[:tr_size], Y[:tr_size]
     test = X[tr_size:tr_size + te_size], Y[tr_size:tr_size + te_size]
     for classifier in (basic + bag + ada):
-        clf = classifier(train[0].copy(), train[1].copy())
+        clf = classifier(train[0], train[1])
         res = clf(test[0])
         precision = dmc.evaluation.precision(res, test[1])
         print(precision, ' using ', str(classifier))
