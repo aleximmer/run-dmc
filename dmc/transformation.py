@@ -27,19 +27,22 @@ def transform_feature_matrix(df: pd.DataFrame, ignore_features: list) -> csr_mat
     X = None
     for ft in [ft for ft in df.columns if ft not in ignore_features]:
         X = encode_features(df, ft) if X is None else hstack([X, encode_features_np(df, ft)])
-    return X.astype(np.float64)
+    return X.astype(np.float32)
 
 
-def transform_target_vector(df: pd.DataFrame) -> np.array:
+def transform_target_vector(df: pd.DataFrame, binary=False) -> np.array:
     """Only used on data with known labels otherwise it will fail"""
+    if binary:
+        df.returnQuantity = df.returnQuantity.apply(lambda x: 1 if x > 0 else 0)
     return np.squeeze(df.as_matrix(columns=['returnQuantity'])).astype(np.int32)
 
 
-def transform(df: pd.DataFrame, ignore_features=None, scaler=None) -> (np.array, np.array):
+def transform(df: pd.DataFrame, ignore_features=None, scaler=None, binary_target=False) \
+        -> (csr_matrix, np.array):
     ignore_features = ignore_features if ignore_features is not None \
         else default_ignore_features
     X = transform_feature_matrix(df, ignore_features)
     if scaler is not None:
         X = scaler(X)
-    Y = transform_target_vector(df)
+    Y = transform_target_vector(df, binary_target)
     return X, Y

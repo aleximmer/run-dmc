@@ -52,9 +52,9 @@ class SVM(DMCClassifier):
 class NeuralNetwork(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
-        input_layer, output_layer = self.X.shape[1], 6
+        input_layer, output_layer = self.X.shape[1], len(np.unique(Y))
         inp = tn.layers.base.Input(size=input_layer, sparse='csr')
-        self.clf = tn.Classifier([inp, 100, 70, 50, 20, output_layer])
+        self.clf = tn.Classifier([inp, 800, 600, 300, 150, 20, output_layer])
 
     def fit(self):
         self.clf.train((self.X, self.Y), algo='sgd', learning_rate=1e-4, momentum=0.9)

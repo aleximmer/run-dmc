@@ -52,7 +52,7 @@ def unproven_cleansing(df: pd.DataFrame) -> pd.DataFrame:
 
 def handle_blacklisted_features(df: pd.DataFrame) -> pd.DataFrame:
     """Drop or encode specific features of group B"""
-    blacklist = ['id', 't_orderDate', 't_orderDateWOYear', 't_season']
+    blacklist = ['id', 't_orderDate', 't_orderDateWOYear', 't_season', 't_atLeastOneReturned']
     for key in blacklist:
         if key in df.columns:
             df = df.drop(key, 1)
