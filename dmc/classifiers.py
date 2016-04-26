@@ -8,6 +8,13 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, \
     BaggingClassifier, AdaBoostClassifier
 
+from time import time
+from operator import itemgetter
+from scipy.stats import randint as sp_randint
+
+from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier
+
 
 class DMCClassifier:
     clf = None
@@ -18,15 +25,65 @@ class DMCClassifier:
         self.Y = Y
 
     def __call__(self, df: pd.DataFrame) -> np.array:
+        self.estimate_parameters_with_grid_search_cv()
         self.fit()
         return self.predict(df)
+
+    def estimate_parameters_with_random_search(self):
+        # specify parameters and distributions to sample from
+        param_dist = {"max_depth": [3, None],
+                      "max_features": sp_randint(1, 11),
+                      "min_samples_split": sp_randint(1, 11),
+                      "min_samples_leaf": sp_randint(1, 11),
+                      "criterion": ["gini", "entropy"]}
+
+        # run randomized search
+        n_iter_search = 100
+        random_search = RandomizedSearchCV(self.clf, param_distributions=param_dist,
+                                           n_iter=n_iter_search)
+
+        start = time()
+        random_search.fit(self.X, self.Y)
+        print("RandomizedSearchCV took %.2f seconds for %d candidates"
+              " parameter settings." % ((time() - start), n_iter_search))
+        self.report(random_search.grid_scores_)
+
+
+    def estimate_parameters_with_grid_search_cv(self):
+        # use a full grid over all parameters
+        param_grid = {"max_depth": [None, 10, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50],
+                      "max_features": [None, 1, 10, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50],
+                      "min_samples_split": [1, 10, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50],
+                      "min_samples_leaf": [1, 10, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50],
+                      "criterion": ["gini", "entropy"]}
+
+        # run grid search
+        grid_search = GridSearchCV(self.clf, param_grid=param_grid)
+        start = time()
+        grid_search.fit(self.X, self.Y)
+
+        print("GridSearchCV took %.2f seconds for %d candidate parameter settings."
+              % (time() - start, len(grid_search.grid_scores_)))
+        self.report(grid_search.grid_scores_)
 
     def fit(self):
         self.clf.fit(self.X, self.Y)
         return self
 
+
     def predict(self, X: csr_matrix) -> np.array:
         return self.clf.predict(X)
+
+    # Utility function to report best scores
+    def report(self, grid_scores, n_top=3):
+        top_scores = sorted(grid_scores, key=itemgetter(1), reverse=True)[:n_top]
+        for i, score in enumerate(top_scores):
+            print("Model with rank: {0}".format(i + 1))
+            print("Mean validation score: {0:.3f} (std: {1:.3f})".format(
+                  score.mean_validation_score,
+                  np.std(score.cv_validation_scores)))
+            print("Parameters: {0}".format(score.parameters))
+            print("")
 
 
 class DecisionTree(DMCClassifier):
