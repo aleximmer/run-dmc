@@ -51,10 +51,10 @@ class DMCClassifier:
 
     def estimate_parameters_with_grid_search_cv(self):
         # use a full grid over all parameters
-        param_grid = {"max_depth": [None, 1, 10, 100],
-                      "max_features": [None, 1, 10, 100],
-                      "min_samples_split": [1, 5, 10, 40, 50, 100],
-                      "min_samples_leaf": [1, 10, 100],
+        param_grid = {"max_depth": [None, 8, 9, 50, 100],
+                      "max_features": [None, 1800, 1900, 2000],
+                      "min_samples_split": [1, 2],
+                      "min_samples_leaf": [100, 113, 125, 150],
                       "criterion": ["gini", "entropy"]}
 
         # run grid search

@@ -56,5 +56,5 @@ def processed_data() -> pd.DataFrame:
 
 if __name__ == '__main__':
     data = processed_data()
-    eval_classifiers(data, 5000, 5000)
+    eval_classifiers(data, 50000, 50000)
     # eval_features(data, 5000)
