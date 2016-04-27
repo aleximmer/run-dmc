@@ -31,8 +31,8 @@ class DMCClassifier:
 
     def estimate_parameters_with_random_search(self):
         # specify parameters and distributions to sample from
-        param_dist = {"max_depth": [3, None],
-                      "max_features": sp_randint(1, 11),
+        param_dist = {"max_depth": [None, 100],
+                      "max_features": sp_randint(1, X.shape[1]),
                       "min_samples_split": sp_randint(1, 11),
                       "min_samples_leaf": sp_randint(1, 11),
                       "criterion": ["gini", "entropy"]}
@@ -51,11 +51,11 @@ class DMCClassifier:
 
     def estimate_parameters_with_grid_search_cv(self):
         # use a full grid over all parameters
-        param_grid = {"max_depth": [None, 8, 9, 50, 100],
-                      "max_features": [None, 1800, 1900, 2000],
+        param_grid = {"max_depth": [None, 9, 50, 100],
+                      "max_features": [None, 1800, 2000],
                       "min_samples_split": [1, 2],
-                      "min_samples_leaf": [100, 113, 125, 150],
-                      "criterion": ["gini", "entropy"]}
+                      "min_samples_leaf": [100],
+                      "criterion": ["entropy"]}
 
         # run grid search
         grid_search = GridSearchCV(self.clf, param_grid=param_grid)

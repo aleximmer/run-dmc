@@ -9,7 +9,7 @@ from dmc.classifiers import TreeBag
 processed_file = '/data/processed_train.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
-basic = [DecisionTree, Forest]
+basic = [Forest]
 bag = [TreeBag]
 ada = [AdaTree]
 
