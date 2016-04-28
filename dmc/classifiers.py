@@ -12,7 +12,6 @@ from operator import itemgetter
 from scipy.stats import randint as sp_randint
 
 from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
-from sklearn.ensemble import RandomForestClassifier
 
 
 class DMCClassifier:
@@ -22,7 +21,8 @@ class DMCClassifier:
         assert len(Y) == X.shape[0]
         self.X = X
         self.Y = Y
-        self.param_dist = { "max_features": sp_randint(1, self.X.shape[1]) }
+        print(X.shape[1]-1)
+        self.param_dist = { "max_features": sp_randint(1,X.shape[1]/2) }
 
     def __call__(self, df: pd.DataFrame) -> np.array:
         print(self.clf.get_params().keys())
@@ -66,12 +66,16 @@ class DMCClassifier:
 
 class DecisionTree(DMCClassifier):
     clf = DecisionTreeClassifier()
+    def __init__(self, X: csr_matrix, Y: np.array):
+        super().__init__(X, Y)
+        self.param_dist = {'max_depth': sp_randint(1,100), 'min_samples_leaf': sp_randint(1,100), "max_features": sp_randint(1, self.X.shape[1]-1), 'criterion': ['entropy', 'gini']}
+        self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8)
 
 
 class Forest(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
-        self.param_dist = {'max_depth': sp_randint(1,200), 'min_samples_leaf': 100, "max_features": sp_randint(1, 2400), 'criterion': ['entropy', 'gini']}
+        self.param_dist = {'max_depth': sp_randint(1,100), 'min_samples_leaf': 100, "max_features": sp_randint(1, self.X.shape[1]-1), 'criterion': ['entropy', 'gini']}
         self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8)
 
 
@@ -99,28 +103,19 @@ class NeuralNetwork(DMCClassifier):
 
 class BagEnsemble(DMCClassifier):
     classifier = None
-    estimators = 10
+    estimators = 50
     max_features = .5
-    max_samples = .5
+    max_samples = .8
 
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
-        self.param_dist = {'base_estimator__max_features': sp_randint(1, self.X.shape[1])}
+        self.param_dist = {'max_features': sp_randint(1, self.X.shape[1]), 'n_estimators': sp_randint(1, 100)}
         self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
                                      max_samples=self.max_samples, max_features=self.max_features)
 
 
 class TreeBag(BagEnsemble):
     classifier = DecisionTreeClassifier()
-
-    def __init__(self, X: np.array, Y: np.array):
-        super().__init__(X, Y)
-        param_dist = {'base_estimator__max_features': sp_randint(1, self.X.shape[1])}
-
-
-
-class BayesBag(BagEnsemble):
-    classifier = BernoulliNB()
 
 
 class SVMBag(DMCClassifier):
@@ -149,7 +144,7 @@ class AdaBoostEnsemble(DMCClassifier):
 
     def __init__(self, X: np.array, Y: np.array):
         super().__init__(X, Y)
-        self.param_dist={'base_estimator__max_features': sp_randint(1, X.shape[1])}
+        self.param_dist = {'max_features': sp_randint(1, self.X.shape[1]), 'n_estimators': sp_randint(1, 100)}
         self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
                                       learning_rate=self.learning_rate, algorithm=self.algorithm)
 
@@ -159,7 +154,6 @@ class AdaTree(AdaBoostEnsemble):
 
     def __init__(self, X: np.array, Y: np.array):
         super().__init__(X, Y)
-        param_dist = {'max_features': sp_randint(1, self.X.shape[1])}
 
 
 class AdaBayes(AdaBoostEnsemble):
