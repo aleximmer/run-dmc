@@ -15,7 +15,8 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['orderDayOfYear'] = df.orderDate.apply(lambda x: x.dayofyear)
     df['orderWeek'] = df.orderDate.apply(lambda x: x.week)
     df['orderWeekOfYear'] = df.orderDate.apply(lambda x: x.weekofyear)
-    df['orderDayOfYear'] = df.orderDate.apply(lambda x: x.dayofyear)
+    df['orderTotalDay'] = df.orderDate.apply(lambda x: x.dayofyear if x.year == 2014
+                                             else x.dayofyear + 365)
     df['orderQuarter'] = df.orderDate.apply(lambda x: x.quarter)
     df['orderSeason'] = df.orderDate.apply(date_to_season)
     df['orderIsOnGermanHoliday'] = df.orderDate.apply(lambda x: 1 if x in holidays.DE() else 0)
