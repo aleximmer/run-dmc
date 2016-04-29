@@ -29,8 +29,7 @@ class PreprocessingTest(unittest.TestCase):
 
     def test_color_return_probability(self):
         processed_data = dmc.preprocessing.add_features(self.data)
-        actual_processed = processed_data[
-            ['colorCode', 'colorReturnProb']]
+        actual_processed = processed_data[['colorCode', 'colorReturnProb']]
         expected_processed = pd.DataFrame({'colorCode': [1972, 3854, 2974, 1992,
                                                          1968, 1972, 1001, 3976],
                                            'colorReturnProb': [0., 0., 0., 1., 0., 0., 0., 0.]})
