@@ -5,8 +5,9 @@ from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 
 encode_label = ['paymentMethod', 'sizeCode', 't_customer_preferredPayment']
-encode_int = ['deviceID', 'productGroup', 'articleID',
-              'voucherID', 'customerID']
+encode_int = ['deviceID', 'productGroup', 'articleID', 'orderYear', 'orderMonth',
+              'voucherID', 'customerID', 'orderDay', 'orderWeekDay', 'orderWeek',
+              'orderSeason', 'orderQuarter']
 
 
 def encode_features(df: pd.DataFrame, ft: str) -> csr_matrix:
