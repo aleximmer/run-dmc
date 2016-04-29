@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import holidays
 
 
 def add_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -14,9 +15,11 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['orderDayOfYear'] = df.orderDate.apply(lambda x: x.dayofyear)
     df['orderWeek'] = df.orderDate.apply(lambda x: x.week)
     df['orderWeekOfYear'] = df.orderDate.apply(lambda x: x.weekofyear)
-    df['orderDayOfYear'] = df.orderDate.apply(lambda x: x.dayofyear)
+    df['orderTotalDay'] = df.orderDate.apply(lambda x: x.dayofyear if x.year == 2014
+                                             else x.dayofyear + 365)
     df['orderQuarter'] = df.orderDate.apply(lambda x: x.quarter)
     df['orderSeason'] = df.orderDate.apply(date_to_season)
+    df['orderIsOnGermanHoliday'] = df.orderDate.apply(lambda x: 1 if x in holidays.DE() else 0)
     df = color_return_probability(df)
     df = size_return_probability(df)
     df = customer_return_probability(df)
@@ -84,7 +87,7 @@ def same_article_same_color_surplus(df: pd.DataFrame) -> pd.DataFrame:
 
 def total_order_share(df: pd.DataFrame) -> pd.DataFrame:
     order_prices = df.groupby(['orderID']).price.sum()
-    df['totalOrderShare'] = df.price / list(order_prices.loc[df.orderID])
+    df['totalOrderShare'] = np.nan_to_num(df.price / list(order_prices.loc[df.orderID]))
     return df
 
 
@@ -92,17 +95,19 @@ def voucher_saving(df: pd.DataFrame) -> pd.DataFrame:
     order_prices = df.groupby(['orderID']).price.sum()
     voucher_amounts = df.groupby(['orderID']).voucherAmount.sum()
     df['voucherSavings'] = list(voucher_amounts.loc[df.orderID] / order_prices.loc[df.orderID])
+    df.voucherSavings = np.nan_to_num(df.voucherSavings)
     return df
 
 
 def date_to_season(date):
-    if date.month <= 3 and date.day <= 22:
-        return 1
-    if date.month <= 6 and date.day <= 22:
+    spring = range(79, 177)  # 03/20
+    summer = range(177, 266)  # 06/21
+    fall = range(266, 356)  # 09/23
+    if date.dayofyear in spring:
         return 2
-    if date.month <= 9 and date.day <= 22:
+    if date.dayofyear in summer:
         return 3
-    if date.month <= 12 and date.day <= 22:
+    if date.dayofyear in fall:
         return 4
     return 1
 

@@ -50,7 +50,30 @@ def unproven_cleansing(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def handle_blacklisted_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop or encode specific features of group B"""
+    blacklist = ['id', 't_orderDate', 't_orderDateWOYear', 't_season', 't_atLeastOneReturned']
+    for key in blacklist:
+        if key in df.columns:
+            df = df.drop(key, 1)
+    if ('t_voucher_lastUsedDate_A' not in df.columns and
+       't_voucher_firstUsedDate_A' not in df.columns):
+        return df
+    df.t_voucher_firstUsedDate_A = pd.to_datetime(df.t_voucher_firstUsedDate_A)
+    df.t_voucher_lastUsedDate_A = pd.to_datetime(df.t_voucher_lastUsedDate_A)
+    df.t_voucher_firstUsedDate_A = df.t_voucher_firstUsedDate_A.apply(
+        lambda x: x.dayofyear if x.year == 2014 else x.dayofyear + 365)
+    df.t_voucher_lastUsedDate_A = df.t_voucher_lastUsedDate_A.apply(
+        lambda x: x.dayofyear if x.year == 2014 else x.dayofyear + 365)
+
+    if 't_singleItemPrice_per_rrp' in df.columns:
+        df.t_singleItemPrice_per_rrp = np.nan_to_num(df.t_singleItemPrice_per_rrp)
+
+    return df
+
+
 def cleanse(df: pd.DataFrame, unproven=False) -> pd.DataFrame:
+    df = handle_blacklisted_features(df)
     df = parse_strings(df)
     df = enforce_constraints(df)
     assert_constraints(df)

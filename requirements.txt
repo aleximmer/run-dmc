@@ -1,6 +1,7 @@
 climate==0.4.6
 Cython==0.24
 downhill==0.3.2
+holidays==0.4.1
 numpy==1.11.0
 pandas==0.18.0
 plac==0.9.1
