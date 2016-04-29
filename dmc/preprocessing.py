@@ -122,8 +122,3 @@ def merge_features(df: pd.DataFrame, feature_dfs: list) -> pd.DataFrame:
         feature_df.drop(conflicting_keys, inplace=True, axis=1)
         df = pd.merge(df, feature_df, how='left', on=unique_keys)
     return df
-
-
-def preprocess(df: pd.DataFrame) -> pd.DataFrame:
-    df = add_features(df)
-    return df

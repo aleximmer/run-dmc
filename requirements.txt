@@ -16,3 +16,4 @@ Theano
 jupyter-client
 jupyter-core
 notebook
+nose_parameterized
