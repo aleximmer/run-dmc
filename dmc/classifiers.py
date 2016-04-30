@@ -22,12 +22,15 @@ class DMCClassifier:
         assert len(Y) == X.shape[0]
         self.X = X
         self.Y = Y
-        print(X.shape[1]-1)
-        self.param_dist = { "max_features": sp_randint(1,X.shape[1]/2) }
 
     def __call__(self, df: pd.DataFrame) -> np.array:
         print(self.clf.get_params().keys())
-        self.estimate_parameters_with_random_search()
+        try:
+            self.estimate_parameters_with_random_search()
+            self.estimate_parameters_with_grid_search_cv()
+        except Exception as e:
+            print(e)
+            pass
         self.fit()
         return self.predict(df)
 
@@ -110,7 +113,7 @@ class BagEnsemble(DMCClassifier):
 
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
-        self.param_dist = {'max_features': sp_randint(1, self.X.shape[1]), 'n_estimators': sp_randint(1, 100), 'max_samples': sp_randint(1, len(Y))}
+        self.param_dist = {'max_features': sp_randint(1, self.X.shape[1]), 'n_estimators': sp_randint(1, 100)}
         self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
                                      max_samples=self.max_samples, max_features=self.max_features)
 
@@ -145,16 +148,13 @@ class AdaBoostEnsemble(DMCClassifier):
 
     def __init__(self, X: np.array, Y: np.array):
         super().__init__(X, Y)
-        self.param_dist = {'n_estimators': sp_randint(1, 100), 'algorithm': ['SAMME', 'SAMME.R'], 'learning_rate': random.random(1)[0]}
+        self.param_dist = {'n_estimators': sp_randint(1, 1000), 'algorithm': ['SAMME', 'SAMME.R'], 'learning_rate': random.random(100)}
         self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
                                       learning_rate=self.learning_rate, algorithm=self.algorithm)
 
 
 class AdaTree(AdaBoostEnsemble):
     classifier = DecisionTreeClassifier()
-
-    def __init__(self, X: np.array, Y: np.array):
-        super().__init__(X, Y)
 
 
 class AdaBayes(AdaBoostEnsemble):
