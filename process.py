@@ -45,10 +45,10 @@ def processed_data() -> pd.DataFrame:
     if os.path.isfile(rel_file_path):
         return pd.DataFrame.from_csv(rel_file_path)
     data = dmc.data_train()
-    data = dmc.cleansing.cleanse(data, unproven=True)
+    data = dmc.cleansing.cleanse(data)
     data = dmc.preprocessing.add_features(data)
     feature_dfs = dmc.data_features()
-    feature_dfs = [dmc.cleansing.cleanse(df, unproven=True) for df in feature_dfs]
+    feature_dfs = [dmc.cleansing.cleanse(df) for df in feature_dfs]
     data = dmc.preprocessing.merge_features(data, feature_dfs)
     print('Finished processing. Dumping results to {}.'.format(rel_file_path))
     data.to_csv(rel_file_path, sep=',')

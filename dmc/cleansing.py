@@ -39,17 +39,6 @@ def parse_strings(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def unproven_cleansing(df: pd.DataFrame) -> pd.DataFrame:
-    """Conversions that are not agreed on or discussed in detail"""
-    # no product group is labeled with zero
-    df.productGroup = np.nan_to_num(df.productGroup).astype(np.int)
-    # 0. (no voucher) is mostly appearing in data thus we can easily substitute
-    df.voucherID = np.nan_to_num(df.voucherID).astype(np.int)
-    # incorrect substitution for rrp, use imputation later
-    df.rrp = np.nan_to_num(df.rrp).astype(np.float32)
-    return df
-
-
 def handle_blacklisted_features(df: pd.DataFrame) -> pd.DataFrame:
     """Drop or encode specific features of group B"""
     blacklist = ['id', 't_orderDate', 't_orderDateWOYear', 't_season', 't_atLeastOneReturned']
@@ -72,11 +61,9 @@ def handle_blacklisted_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def cleanse(df: pd.DataFrame, unproven=False) -> pd.DataFrame:
+def cleanse(df: pd.DataFrame) -> pd.DataFrame:
     df = handle_blacklisted_features(df)
     df = parse_strings(df)
     df = enforce_constraints(df)
     assert_constraints(df)
-    if unproven:
-        df = unproven_cleansing(df)
     return df
