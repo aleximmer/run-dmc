@@ -46,7 +46,7 @@ def processed_data() -> pd.DataFrame:
         return pd.DataFrame.from_csv(rel_file_path)
     data = dmc.data_train()
     data = dmc.cleansing.cleanse(data, unproven=True)
-    data = dmc.preprocessing.preprocess(data)
+    data = dmc.preprocessing.add_features(data)
     feature_dfs = dmc.data_features()
     feature_dfs = [dmc.cleansing.cleanse(df, unproven=True) for df in feature_dfs]
     data = dmc.preprocessing.merge_features(data, feature_dfs)

@@ -95,7 +95,7 @@ class NeuralNetwork(DMCClassifier):
         super().__init__(X, Y)
         input_layer, output_layer = self.X.shape[1], len(np.unique(Y))
         inp = tn.layers.base.Input(size=input_layer, sparse='csr')
-        self.clf = tn.Classifier([inp, 800, 600, 300, 150, 20, output_layer])
+        self.clf = tn.Classifier([inp, 200, 50, 20, output_layer])
 
     def fit(self):
         self.clf.train((self.X, self.Y), algo='sgd', learning_rate=1e-4, momentum=0.9)
