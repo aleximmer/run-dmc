@@ -19,7 +19,8 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     df['productPrice'] = df.price / df.quantity
     df['totalSavings'] = df.rrp - df.productPrice
-    df['relativeSavings'] = np.nan_to_num(1 - df.productPrice / df.rrp)
+    df['relativeSavings'] = (1 - df.productPrice / df.rrp)
+    df.relativeSavings = df.relativeSavings.fillna(1.) # / 0. only when price == 0
     df['orderYear'] = df.orderDate.apply(lambda x: x.year)
     df['orderMonth'] = df.orderDate.apply(lambda x: x.month)
     df['orderDay'] = df.orderDate.apply(lambda x: x.day)
