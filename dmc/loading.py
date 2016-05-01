@@ -1,5 +1,4 @@
 import pandas as pd
-from os import listdir
 
 
 def data_train():
