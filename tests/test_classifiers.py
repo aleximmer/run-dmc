@@ -15,8 +15,8 @@ ada = [AdaTree, AdaBayes, AdaSVM]
 class PrimitiveClassifierTest(unittest.TestCase):
     def setUp(self):
         df = pd.read_csv('tests/test_data.txt', delimiter=';')
-        df = dmc.cleansing.cleanse(df, unproven=True)
-        df = dmc.preprocessing.add_features(df)
+        df = dmc.cleansing.cleanse(df)
+        df = dmc.preprocessing.featuring(df)
         X, Y = dmc.transformation.transform(df, scaler=dmc.normalization.normalize_features)
         self.X_tr, self.Y_tr = X[:6], Y[:6]
         self.X_te, self.Y_te = X[6:], Y[6:]
