@@ -25,6 +25,6 @@ Required
 - Install requirements (NumPy, pandas, SciPy, ...)
 - `pip3 install -r requirements.txt`
 
-Confirm installation by running `python -m unittest discover`
+Confirm installation by running `python -m unittest discover` or `python3 -m unittest discover`
 
 Modify IPython notebook files using e.g. `jupyter notebook features.ipynb`
