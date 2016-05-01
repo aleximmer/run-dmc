@@ -36,6 +36,7 @@ def parse_strings(df: pd.DataFrame) -> pd.DataFrame:
     df.articleID = df.articleID.apply(lambda x: x.replace('i', '')).astype(np.int)
     df.customerID = df.customerID.apply(lambda x: x.replace('c', '')).astype(np.int)
     df.voucherID = df.voucherID.apply(lambda x: str(x).replace('v', '')).astype(np.float)
+    df.voucherID = np.nan_to_num(df.voucherID)
     return df
 
 
@@ -44,9 +45,13 @@ def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     - date features since we create all possible of them using pandas
     - binary target is an option for benchmarking later
+    - last six are dropped because of amateurish feature engineering
     """
     blacklist = ['id', 't_orderDate', 't_orderDateWOYear', 't_season', 't_dayOfWeek',
-                 't_dayOfMonth', 't_isWeekend', 't_singleItemPrice_per_rrp', 't_atLeastOneReturned']
+                 't_dayOfMonth', 't_isWeekend', 't_singleItemPrice_per_rrp', 't_atLeastOneReturned',
+                 't_voucher_usedOnlyOnce_A', 't_voucher_stdDevDiscount_A', 't_voucher_OrderCount_A',
+                 't_voucher_hasAbsoluteDiscountValue_A', 't_voucher_firstUsedDate_A',
+                 't_voucher_lastUsedDate_A']
     for key in [k for k in blacklist if k in df.columns]:
         df = df.drop(key, 1)
     return df
