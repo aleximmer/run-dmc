@@ -45,8 +45,8 @@ def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
     - date features since we create all possible of them using pandas
     - binary target is an option for benchmarking later
     """
-    blacklist = ['id', 't_orderDate', 't_orderDateWOYear', 't_season', 't_dayOfWeek', 't_dayOfMonth',
-                 't_isWeekend', 't_singleItemPrice_per_rrp', 't_atLeastOneReturned']
+    blacklist = ['id', 't_orderDate', 't_orderDateWOYear', 't_season', 't_dayOfWeek',
+                 't_dayOfMonth', 't_isWeekend', 't_singleItemPrice_per_rrp', 't_atLeastOneReturned']
     for key in [k for k in blacklist if k in df.columns]:
         df = df.drop(key, 1)
     return df
