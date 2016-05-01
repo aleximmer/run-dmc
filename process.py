@@ -7,7 +7,7 @@ from dmc.classifiers import TreeBag, BayesBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
 
 
-processed_file = '/data/processed_train.csv'
+processed_file = '/data/processed.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
 basic = [DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork]
@@ -46,10 +46,7 @@ def processed_data() -> pd.DataFrame:
         return pd.DataFrame.from_csv(rel_file_path)
     data = dmc.data_train()
     data = dmc.cleansing.cleanse(data)
-    data = dmc.preprocessing.add_features(data)
-    feature_dfs = dmc.data_features()
-    feature_dfs = [dmc.cleansing.cleanse(df) for df in feature_dfs]
-    data = dmc.preprocessing.merge_features(data, feature_dfs)
+    data = dmc.preprocessing.featuring(data)
     print('Finished processing. Dumping results to {}.'.format(rel_file_path))
     data.to_csv(rel_file_path, sep=',')
     return data
