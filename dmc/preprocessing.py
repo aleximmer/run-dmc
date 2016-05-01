@@ -40,15 +40,15 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['surplusArticleColorQuantity'] = same_article_same_color_surplus(df)
     df['totalOrderShare'] = total_order_share(df)
     df['voucherSavings'] = voucher_saving(df)
-    #df['voucherFirstUsedDate'] = pd.to_datetime(df.t_voucher_firstUsedDate_A).apply(total_day)
-    #df['voucherLastUsedDate'] = pd.to_datetime(df.t_voucher_lastUsedDate_A).apply(total_day)
+    # df['voucherFirstUsedDate'] = pd.to_datetime(df.t_voucher_firstUsedDate_A).apply(total_day)
+    # df['voucherLastUsedDate'] = pd.to_datetime(df.t_voucher_lastUsedDate_A).apply(total_day)
     df['customerAvgUnisize'] = df.t_customer_avgUnisize.astype(np.int)
     return df
 
 
 def remove_features(df: pd.DataFrame) -> pd.DataFrame:
-    #df = df.drop('t_voucher_firstUsedDate_A', 1)
-    #df = df.drop('t_voucher_lastUsedDate_A', 1)
+    # df = df.drop('t_voucher_firstUsedDate_A', 1)
+    # df = df.drop('t_voucher_lastUsedDate_A', 1)
     df = df.drop('t_customer_avgUnisize', 1)
     return df
 
