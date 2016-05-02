@@ -18,7 +18,7 @@ def transform_feature_matrix_ph(df: pd.DataFrame, ignore_features=None) -> \
     X, ft_list = None, []
     for ft in [ft for ft in df.columns if ft not in ignore_features]:
         X_enc = encode_features(df, ft)
-        X = encode_features(df, ft) if X is None else hstack([X, X_enc])
+        X = X_enc if X is None else hstack([X, X_enc])
         ft_list.extend([ft] * X_enc.shape[1])
     return X.astype(np.float32), np.array(ft_list)
 
