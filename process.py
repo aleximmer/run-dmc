@@ -10,7 +10,7 @@ processed_file = '/data/processed_train.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
 basic = []#Forest, DecisionTree, Forest]
-bag = [SVMBag]
+bag = [TreeBag]
 ada = []#AdaTree]
 
 
