@@ -9,7 +9,8 @@ class TransformationTest(unittest.TestCase):
         raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
         raw_data = raw_data.head(50)
         clean_data = dmc.cleansing.cleanse(raw_data)
-        self.X, self.Y = dmc.transformation.transform(clean_data)
+        featured_data = dmc.preprocessing.featuring(clean_data)
+        self.X, self.Y = dmc.transformation.transform(featured_data)
         self.X = self.X.toarray()
 
     def test_product_group_encoding(self):

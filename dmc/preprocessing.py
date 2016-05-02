@@ -22,7 +22,7 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     df['productPrice'] = df.price / df.quantity
     df['totalSavings'] = df.rrp - df.productPrice
-    df['relativeSavings'] = np.nan_to_num(1 - df.productPrice / df.rrp)
+    df['relativeSavings'] = (1 - df.productPrice / df.rrp).fillna(1.)
     df['orderYear'] = df.orderDate.apply(lambda x: x.year)
     df['orderMonth'] = df.orderDate.apply(lambda x: x.month)
     df['orderDay'] = df.orderDate.apply(lambda x: x.day)
@@ -30,9 +30,8 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['orderDayOfYear'] = df.orderDate.apply(lambda x: x.dayofyear)
     df['orderWeek'] = df.orderDate.apply(lambda x: x.week)
     df['orderWeekOfYear'] = df.orderDate.apply(lambda x: x.weekofyear)
-    df['orderTotalDay'] = df.orderDate.apply(lambda x:
-                                             x.dayofyear if x.year == 2014 else x.dayofyear + 365)
     df['orderQuarter'] = df.orderDate.apply(lambda x: x.quarter)
+    df['orderTotalDay'] = df.orderDate.apply(total_day)
     df['orderSeason'] = df.orderDate.apply(date_to_season)
     df['orderIsOnGermanHoliday'] = df.orderDate.apply(lambda x: 1 if x in holidays.DE() else 0)
     df['colorReturnProb'] = color_return_probability(df)
@@ -45,6 +44,16 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df['totalOrderShare'] = total_order_share(df)
     df['voucherSavings'] = voucher_saving(df)
     df['binnedColorCode'] = binned_color_code(df)
+    # df['voucherFirstUsedDate'] = pd.to_datetime(df.t_voucher_firstUsedDate_A).apply(total_day)
+    # df['voucherLastUsedDate'] = pd.to_datetime(df.t_voucher_lastUsedDate_A).apply(total_day)
+    df['customerAvgUnisize'] = df.t_customer_avgUnisize.astype(np.int)
+    return df
+
+
+def remove_features(df: pd.DataFrame) -> pd.DataFrame:
+    # df = df.drop('t_voucher_firstUsedDate_A', 1)
+    # df = df.drop('t_voucher_lastUsedDate_A', 1)
+    df = df.drop('t_customer_avgUnisize', 1)
     return df
 
 
@@ -120,16 +129,8 @@ def date_to_season(date):
     return 1
 
 
-def merge_features(df: pd.DataFrame, feature_dfs: list) -> pd.DataFrame:
-    unique_keys = ['orderID', 'articleID', 'colorCode', 'sizeCode']
-    for feature_df in feature_dfs:
-        # Drop all columns which are in both DFs but not in original_keys
-        left_keys = set(df.columns.values.tolist()) - set(unique_keys)
-        right_keys = set(feature_df.columns.values.tolist()) - set(unique_keys)
-        conflicting_keys = list(set(left_keys) & set(right_keys))
-        feature_df.drop(conflicting_keys, inplace=True, axis=1)
-        df = pd.merge(df, feature_df, how='left', on=unique_keys)
-    return df
+def total_day(date):
+    return date.dayofyear if date.year == 2014 else date.dayofyear + 365
 
 
 def binned_color_code(df: pd.DataFrame, deviations=1.0) -> pd.DataFrame:
@@ -181,3 +182,11 @@ def binned_color_code(df: pd.DataFrame, deviations=1.0) -> pd.DataFrame:
 
     cut = list(pd.cut(df.colorCode, bins, right=False))
     return pd.Series(cut, index=df.index)
+
+
+def featuring(df: pd.DataFrame):
+    """Incredibly descriptive and awesome method name
+    """
+    df = add_features(df)
+    df = remove_features(df)
+    return df
