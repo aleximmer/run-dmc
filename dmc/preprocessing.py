@@ -140,7 +140,7 @@ def binned_color_code(df: pd.DataFrame, deviations=1.0) -> pd.DataFrame:
     The binning considers outlier CC's by keeping them separate, 1-sized bins.
     Outliers are CC's whose return probability is over one standard deviation away from the mean.
     For our training data (mean: 0.548, std: 0.114) colorCode c is an is an outlier if
-    
+
         retProb(c) < 0.434 || 0.662 < retProb(c), given deviations = 1.
 
     Parameters
