@@ -35,7 +35,7 @@ def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
 
 def eval_features(df: pd.DataFrame, size):
     df = shuffle(df)
-    ft_importance = dmc.evaluation.eval_features_by_ensemble(df[:size])
+    ft_importance = dmc.evaluation.evaluate_features_by_ensemble(df[:size])
     print(ft_importance.sort_values('tree', ascending=False))
 
 
