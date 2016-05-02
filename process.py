@@ -4,14 +4,14 @@ import os.path
 import pandas as pd
 from dmc.classifiers import AdaTree
 from dmc.classifiers import DecisionTree, Forest
-from dmc.classifiers import TreeBag
+from dmc.classifiers import TreeBag, SVMBag
 
 processed_file = '/data/processed_train.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
-basic = [DecisionTree, Forest]
-bag = [TreeBag]
-ada = [AdaTree]
+basic = []#Forest, DecisionTree, Forest]
+bag = [SVMBag]
+ada = []#AdaTree]
 
 
 def shuffle(df: pd.DataFrame) -> pd.DataFrame:

@@ -47,14 +47,14 @@ class DMCClassifier:
 
 
     def estimate_parameters_with_random_search(self):
-        random_search = RandomizedSearchCV(self.clf, param_distributions=self.param_dist,
+        random_search = RandomizedSearchCV(self.clf, param_distributions=self.param_dist_random,
                                            n_iter=100)
         random_search.fit(self.X, self.Y)
         self.report(random_search.grid_scores_)
 
 
     def estimate_parameters_with_grid_search_cv(self):
-        grid_search = GridSearchCV(self.clf, param_grid=self.param_dist)
+        grid_search = GridSearchCV(self.clf, param_grid=self.param_dist_grid)
         grid_search.fit(self.X, self.Y)
         self.report(grid_search.grid_scores_)
 
@@ -72,14 +72,16 @@ class DecisionTree(DMCClassifier):
     clf = DecisionTreeClassifier()
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
-        self.param_dist = {'max_depth': sp_randint(1,100), 'min_samples_leaf': sp_randint(1,100), "max_features": sp_randint(1, self.X.shape[1]-1), 'criterion': ['entropy', 'gini']}
+        self.param_dist_random = {'max_depth': sp_randint(1,100), 'min_samples_leaf': sp_randint(1,100), "max_features": sp_randint(1, self.X.shape[1]-1), 'criterion': ['entropy', 'gini']}
         self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8)
 
 
 class Forest(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
-        self.param_dist = {'max_depth': sp_randint(1,100), 'min_samples_leaf': sp_randint(1,100), "max_features": sp_randint(1, self.X.shape[1]-1), 'criterion': ['entropy', 'gini']}
+        self.param_dist_random = {'max_depth': sp_randint(1, 100), 'min_samples_leaf': sp_randint(1, 100), "max_features": sp_randint(1, self.X.shape[1] - 1), 'criterion': ['entropy', 'gini']}
+        self.param_dist_grid = {'max_depth': [60, 70, 80, 90], 'min_samples_leaf': [40, 45, 50, 60],
+                                  "max_features": [400, 500, 600, 700, 800, 900, 1000, 1100, 1200], 'criterion': ['entropy', 'gini']}
         self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8)
 
 
@@ -113,7 +115,8 @@ class BagEnsemble(DMCClassifier):
 
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
-        self.param_dist = {'max_features': sp_randint(1, self.X.shape[1]), 'n_estimators': sp_randint(1, 100)}
+        self.param_dist_random = {'max_features': sp_randint(1, self.X.shape[1]), 'n_estimators': sp_randint(1, 100)}
+        sys
         self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
                                      max_samples=self.max_samples, max_features=self.max_features)
 
@@ -131,6 +134,7 @@ class SVMBag(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
         self.X, self.Y = X.toarray(), Y
+        self.param_dist_random = {'max_features': sp_randint(1, self.X.shape[1]), 'n_estimators': sp_randint(1, 1000)}
         self.classifier = SVC(decision_function_shape='ovo')
         self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
                                      max_samples=self.max_samples, max_features=self.max_features)
@@ -148,7 +152,7 @@ class AdaBoostEnsemble(DMCClassifier):
 
     def __init__(self, X: np.array, Y: np.array):
         super().__init__(X, Y)
-        self.param_dist = {'n_estimators': sp_randint(1, 1000), 'algorithm': ['SAMME', 'SAMME.R'], 'learning_rate': random.random(100)}
+        self.param_dist_random = {'n_estimators': sp_randint(1, 1000), 'algorithm': ['SAMME', 'SAMME.R'], 'learning_rate': random.random(100)}
         self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
                                       learning_rate=self.learning_rate, algorithm=self.algorithm)
 
