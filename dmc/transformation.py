@@ -28,7 +28,8 @@ def transform_feature_matrix(df: pd.DataFrame, ignore_features: list) -> csr_mat
     assert target_feature in ignore_features
     X = None
     for ft in [ft for ft in df.columns if ft not in ignore_features]:
-        X = encode_features(df, ft) if X is None else hstack([X, encode_features(df, ft)])
+        X_enc = encode_features(df, ft)
+        X = X_enc if X is None else hstack([X, X_enc], format='csr', dtype=np.float32)
     return X.astype(np.float32)
 
 
@@ -50,12 +51,18 @@ def transform_preserving_header(df: pd.DataFrame, ignore_features=None, scaler=N
     return X, Y, fts
 
 
-def transform(df: pd.DataFrame, ignore_features=None, scaler=None, binary_target=False) \
-        -> (csr_matrix, np.array):
+def transform(df: pd.DataFrame, ignore_features=None, scaler=None, scale_all=False,
+              binary_target=False) -> (csr_matrix, np.array):
     ignore_features = ignore_features if ignore_features is not None \
         else default_ignore_features
     X = transform_feature_matrix(df, ignore_features)
+    X_o = X.copy()
     if scaler is not None:
-        X = scaler(X)
+        for col in range(X.shape[1]):
+            hot = (X[:, col] > 1.).todense().any() or (X[:, col] < 0.).todense().any()
+            if hot:
+                X[:, col] = scaler(X[:, col])
+        #X = scaler(X)
+    print((X_o != X).todense().any())
     Y = transform_target_vector(df, binary_target)
     return X, Y
