@@ -6,8 +6,8 @@ from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork
 from dmc.classifiers import TreeBag, BayesBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
 
-processed_file = '/data/processed_train.csv'
 tune_parameters = False
+processed_file = '/data/processed.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
 basic = [DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork]
@@ -22,7 +22,7 @@ def shuffle(df: pd.DataFrame) -> pd.DataFrame:
 def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
     df = shuffle(df)
     df = df[:te_size + tr_size]
-    X, Y = dmc.transformation.transform(df, scaler=dmc.normalization.normalize_features,
+    X, Y = dmc.transformation.transform(df, scaler=dmc.normalization.scale_features,
                                         binary_target=True)
     train = X[:tr_size], Y[:tr_size]
     test = X[tr_size:tr_size + te_size], Y[tr_size:tr_size + te_size]
@@ -35,7 +35,7 @@ def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
 
 def eval_features(df: pd.DataFrame, size):
     df = shuffle(df)
-    ft_importance = dmc.evaluation.eval_features_by_ensemble(df[:size])
+    ft_importance = dmc.evaluation.evaluate_features_by_ensemble(df[:size])
     print(ft_importance.sort_values('tree', ascending=False))
 
 
@@ -45,11 +45,8 @@ def processed_data() -> pd.DataFrame:
     if os.path.isfile(rel_file_path):
         return pd.DataFrame.from_csv(rel_file_path)
     data = dmc.data_train()
-    data = dmc.cleansing.cleanse(data, unproven=True)
-    data = dmc.preprocessing.add_features(data)
-    feature_dfs = dmc.data_features()
-    feature_dfs = [dmc.cleansing.cleanse(df, unproven=True) for df in feature_dfs]
-    data = dmc.preprocessing.merge_features(data, feature_dfs)
+    data = dmc.cleansing.cleanse(data)
+    data = dmc.preprocessing.featuring(data)
     print('Finished processing. Dumping results to {}.'.format(rel_file_path))
     data.to_csv(rel_file_path, sep=',')
     return data
