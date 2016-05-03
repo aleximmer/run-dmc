@@ -1,17 +1,17 @@
+import dmc
+import numpy as np
 import os.path
 import pandas as pd
-import numpy as np
-import dmc
 from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork
-from dmc.classifiers import TreeBag, BayesBag, SVMBag
+from dmc.classifiers import TreeBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
 
-
+tune_parameters = False
 processed_file = '/data/processed.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
 basic = [DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork]
-bag = [TreeBag, BayesBag, SVMBag]
+bag = [TreeBag, SVMBag]
 ada = [AdaTree, AdaBayes, AdaSVM]
 
 
@@ -27,7 +27,7 @@ def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
     train = X[:tr_size], Y[:tr_size]
     test = X[tr_size:tr_size + te_size], Y[tr_size:tr_size + te_size]
     for classifier in (basic + bag + ada):
-        clf = classifier(train[0], train[1])
+        clf = classifier(train[0], train[1], tune_parameters)
         res = clf(test[0])
         precision = dmc.evaluation.precision(res, test[1])
         print(precision, ' using ', str(classifier))
