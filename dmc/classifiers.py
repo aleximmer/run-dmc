@@ -42,8 +42,7 @@ class DMCClassifier:
         for i, score in enumerate(top_scores):
             print("Model with rank: {0}".format(i + 1))
             print("Mean validation score: {0:.3f} (std: {1:.3f})".format(
-                  score.mean_validation_score,
-                  np.std(score.cv_validation_scores)))
+                score.mean_validation_score, np.std(score.cv_validation_scores)))
             print("Parameters: {0}".format(score.parameters))
             print("")
 
@@ -108,8 +107,7 @@ class NeuralNetwork(DMCClassifier):
         self.clf = tn.Classifier([inp, 200, 50, 20, output_layer])
 
     def fit(self):
-        self.clf.train(
-            (self.X, self.Y), algo='sgd', learning_rate=1e-4, momentum=0.9)
+        self.clf.train((self.X, self.Y), algo='sgd', learning_rate=1e-4, momentum=0.9)
         return self
 
 
@@ -122,12 +120,11 @@ class BagEnsemble(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array, tune_parameters: bool):
         super().__init__(X, Y, tune_parameters)
         if tune_parameters:
-            self.param_dist_random = {'max_features': sp_randint(
-                1, self.X.shape[1]), 'n_estimators': sp_randint(1, 100)}
-            self.param_dist_grid = {
-                'max_features': [10, 20, 30], 'n_estimators': [30, 50, 70]}
-        self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
-                                     max_samples=self.max_samples, max_features=self.max_features)
+            self.param_dist_random = {
+                'max_features': sp_randint(1, self.X.shape[1]), 'n_estimators': sp_randint(1, 100)}
+            self.param_dist_grid = {'max_features': [10, 20, 30], 'n_estimators': [30, 50, 70]}
+        self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators,
+                                     n_jobs=8, max_samples=self.max_samples, max_features=self.max_features)
 
 
 class TreeBag(BagEnsemble):
@@ -144,8 +141,8 @@ class SVMBag(DMCClassifier):
         super().__init__(X, Y)
         self.X, self.Y = X.toarray(), Y
         self.classifier = SVC(decision_function_shape='ovo')
-        self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
-                                     max_samples=self.max_samples, max_features=self.max_features)
+        self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators,
+                                     n_jobs=8, max_samples=self.max_samples, max_features=self.max_features)
 
     def predict(self, X: csr_matrix):
         X = X.toarray()
@@ -165,8 +162,8 @@ class AdaBoostEnsemble(DMCClassifier):
                 1, 1000), 'algorithm': ['SAMME', 'SAMME.R'], 'learning_rate': random.random(100)}
             self.param_dist_grid = {'n_estimators': [100, 200, 400, 900, 1000], 'algorithm': [
                 'SAMME', 'SAMME.R'], 'learning_rate': [.1, .2, 0.25, .3, .4, .5, .6]}
-        self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
-                                      learning_rate=self.learning_rate, algorithm=self.algorithm)
+        self.clf = AdaBoostClassifier(
+            self.classifier, n_estimators=self.estimators, learning_rate=self.learning_rate, algorithm=self.algorithm)
 
 
 class AdaTree(AdaBoostEnsemble):
