@@ -69,8 +69,8 @@ class BagEnsemble(DMCClassifier):
 
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
-        self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
-                                     max_samples=self.max_samples, max_features=self.max_features)
+        self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators,
+                                     n_jobs=8, max_samples=self.max_samples, max_features=self.max_features)
 
 
 class TreeBag(BagEnsemble):
