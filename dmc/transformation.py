@@ -28,7 +28,8 @@ def transform_feature_matrix(df: pd.DataFrame, ignore_features: list) -> csr_mat
     assert target_feature in ignore_features
     X = None
     for ft in [ft for ft in df.columns if ft not in ignore_features]:
-        X = encode_features(df, ft) if X is None else hstack([X, encode_features(df, ft)])
+        X_enc = encode_features(df, ft)
+        X = X_enc if X is None else hstack([X, X_enc], format='csr', dtype=np.float32)
     return X.astype(np.float32)
 
 
