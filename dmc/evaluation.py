@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from dmc.transformation import transform_preserving_headers, transform_target_vector
+from dmc.transformation import transform_feature_matrix_ph, transform_target_vector
 from dmc.classifiers import Forest, DecisionTree
 
 
@@ -68,9 +68,9 @@ def column_purities(df: pd.DataFrame) -> pd.Series:
     return purities
 
 
-def eval_features_by_ensemble(df: pd.DataFrame) -> pd.DataFrame:
+def evaluate_features_by_ensemble(df: pd.DataFrame) -> pd.DataFrame:
     """Returns a dataframe giving each feature an importance factor"""
-    X, fts = transform_preserving_headers(df)
+    X, fts = transform_feature_matrix_ph(df)
     Y = transform_target_vector(df)
     forest = Forest(X, Y).fit()
     tree = DecisionTree(X, Y).fit()
@@ -80,3 +80,29 @@ def eval_features_by_ensemble(df: pd.DataFrame) -> pd.DataFrame:
         'tree': tree.clf.feature_importances_,
     })
     return ft_eval.groupby('feature').sum()
+
+
+def evaluate_features_leaving_one_out(X_train, Y_train, X_class, Y_class,
+                                      feature_header, classifier) -> pd.DataFrame:
+    """Based on training and testing data features are left out and
+    performance is measured without those features.
+
+    A Dataframe with precision deltas and precision will be returned
+    """
+    clf = classifier(X_train, Y_train)
+    baseline = precision(Y_class, clf(X_class))
+    ftsl, seen = list(feature_header), set()
+    res = pd.DataFrame(index=set(ftsl + ['all']),
+                       data={'decrement': 0., 'precision': 0.})
+    res.precision['all'] = baseline
+    for ft in ftsl:
+        if ft in seen:
+            continue
+        else:
+            seen.add(ft)
+        X_tr, X_cl = X_train.T[feature_header != ft].T, X_class.T[feature_header != ft].T
+        clf = classifier(X_tr, Y_train)
+        prec = precision(Y_class, clf(X_cl))
+        res.decrement[ft] = baseline - prec
+        res.precision[ft] = prec
+    return res

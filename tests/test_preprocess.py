@@ -11,10 +11,10 @@ class PreprocessingTest(unittest.TestCase):
         clean_data = dmc.cleansing.cleanse(raw_data)
         self.data = clean_data
 
-    def content_equal(self, a, b):
+    @staticmethod
+    def content_equal(a, b):
         try:
-            assert_frame_equal(
-                a.sort_index(axis=1), b.sort_index(axis=1), check_names=True)
+            assert_frame_equal(a.sort_index(axis=1), b.sort_index(axis=1), check_names=True)
             return True
         except (AssertionError, ValueError, TypeError):
             return False
@@ -54,3 +54,9 @@ class PreprocessingTest(unittest.TestCase):
         actual_processed = processed_data[['orderIsOnGermanHoliday']]
         expected_processed = pd.DataFrame({'orderIsOnGermanHoliday': [1, 0, 0, 1, 1, 1, 1, 1]})
         self.assertTrue(self.content_equal(actual_processed, expected_processed))
+
+    def test_binned_color_return_probability(self):
+        processed = dmc.preprocessing.add_features(self.data)
+        self.assertListEqual(['[0, 1992)', '[1993, 10000)', '[1993, 10000)', '[1992, 1993)',
+                              '[0, 1992)', '[0, 1992)', '[0, 1992)', '[1993, 10000)'],
+                             list(processed.binnedColorCode))
