@@ -1,8 +1,33 @@
 import numpy as np
 from scipy.sparse import csr_matrix, hstack
 import pandas as pd
+from sklearn.preprocessing import StandardScaler, MaxAbsScaler, OneHotEncoder, LabelEncoder
 
-from dmc.encoding import encode_features
+
+encode_label = ['paymentMethod', 'sizeCode', 't_customer_preferredPayment', 'binnedColorCode']
+encode_int = ['deviceID', 'productGroup', 'articleID', 'customerID', 'orderID',
+              'voucherID', 'orderYear', 'orderMonth', 'orderDay', 'orderWeekDay',
+              'orderWeek', 'orderSeason', 'orderQuarter', 'customerAvgUnisize']
+
+
+def encode_features(df: pd.DataFrame, ft: str) -> csr_matrix:
+    """Encode categorical features"""
+    if ft not in set(encode_label + encode_int):
+        return csr_matrix(df.as_matrix(columns=[ft]))
+
+    label_enc = LabelEncoder()
+    one_hot_enc = OneHotEncoder(sparse=True)
+
+    if ft in encode_label:
+        V = df[ft].as_matrix().T
+        V_lab = label_enc.fit_transform(V).reshape(-1, 1)
+        V_enc = one_hot_enc.fit_transform(V_lab)
+        return V_enc
+
+    if ft in encode_int:
+        V = df[ft].as_matrix().reshape(-1, 1)
+        V_enc = one_hot_enc.fit_transform(V)
+        return V_enc
 
 
 target_feature = 'returnQuantity'
@@ -49,6 +74,39 @@ def transform_preserving_header(df: pd.DataFrame, ignore_features=None, scaler=N
         X = scaler(X)
     Y = transform_target_vector(df, binary_target)
     return X, Y, fts
+
+
+def scale_features(X: np.array) -> np.array:
+    """Scale features to mean 0 and unit variance (1)"""
+    scaler = StandardScaler(with_mean=False).fit(X)
+    return scaler.transform(X)
+
+
+def scale_raw_features(X: np.array) -> np.array:
+    """Scale features to mean 0 and unit variance if
+    column was not OneHot encoded"""
+    for col in range(X.shape[1]):
+        dense_col = X[:, col].todense()
+        if (dense_col > 1.).any() or (dense_col < 0.).any():
+            scaler = StandardScaler().fit(dense_col)
+            X[:, col] = csr_matrix(scaler.transform(dense_col))
+    return X
+
+
+def normalize_features(X: np.array) -> np.array:
+    """Normalize features by scaling to [0,1]"""
+    scaler = MaxAbsScaler().fit(X)
+    return scaler.transform(X)
+
+
+def normalize_raw_features(X: np.array) -> np.array:
+    """Normalize features if column was not OneHot encoded"""
+    for col in range(X.shape[1]):
+        dense_col = X[:, col].todense()
+        if (dense_col > 1.).any() or (dense_col < 0.).any():
+            scaler = MaxAbsScaler().fit(dense_col)
+            X[:, col] = csr_matrix(scaler.transform(dense_col))
+    return X
 
 
 def transform(df: pd.DataFrame, ignore_features=None, scaler=None, binary_target=False) \
