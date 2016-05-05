@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 from scipy.sparse import csr_matrix
 import theanets as tn
@@ -17,9 +16,9 @@ class DMCClassifier:
         self.X = X
         self.Y = Y
 
-    def __call__(self, df: pd.DataFrame) -> np.array:
+    def __call__(self, X: csr_matrix) -> np.array:
         self.fit()
-        return self.predict(df)
+        return self.predict(X)
 
     def fit(self):
         self.clf.fit(self.X, self.Y)

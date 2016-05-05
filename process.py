@@ -1,6 +1,7 @@
 import os.path
 import pandas as pd
 import numpy as np
+
 import dmc
 from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork
 from dmc.classifiers import TreeBag, BayesBag, SVMBag
@@ -22,7 +23,7 @@ def shuffle(df: pd.DataFrame) -> pd.DataFrame:
 def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
     df = shuffle(df)
     df = df[:te_size + tr_size]
-    X, Y = dmc.transformation.transform(df, scaler=dmc.normalization.scale_features,
+    X, Y = dmc.transformation.transform(df, scaler=dmc.transformation.scale_features,
                                         binary_target=True)
     train = X[:tr_size], Y[:tr_size]
     test = X[tr_size:tr_size + te_size], Y[tr_size:tr_size + te_size]
@@ -45,8 +46,8 @@ def processed_data() -> pd.DataFrame:
     if os.path.isfile(rel_file_path):
         return pd.DataFrame.from_csv(rel_file_path)
     data = dmc.data_train()
-    data = dmc.cleansing.cleanse(data)
-    data = dmc.preprocessing.featuring(data)
+    data = dmc.preprocessing.cleanse(data)
+    data = dmc.preprocessing.feature(data)
     print('Finished processing. Dumping results to {}.'.format(rel_file_path))
     data.to_csv(rel_file_path, sep=',')
     return data
