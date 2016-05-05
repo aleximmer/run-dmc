@@ -117,11 +117,11 @@ def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_dependent_features(df: pd.DataFrame) -> pd.DataFrame:
-    df['binnedColorCode'] = dependent.binned_color_code(df)
-    df['colorReturnProb'] = dependent.color_return_probability(df)
-    df['sizeReturnProb'] = dependent.size_return_probability(df)
-    df['customerReturnProb'] = dependent.customer_return_probability(df)
-    df['productGroupReturnProb'] = dependent.product_group_return_probability(df)
+    dependent.binned_color_code(df)
+    dependent.color_return_probability(df)
+    dependent.size_return_probability(df)
+    dependent.customer_return_probability(df)
+    dependent.product_group_return_probability(df)
     return df
 
 
