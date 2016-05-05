@@ -59,14 +59,12 @@ def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
     - binary target is an option for benchmarking later
     - last six are dropped because of amateurish feature engineering
     """
-    blacklist = ['id', 't_orderDate', 't_orderDateWOYear', 't_season', 't_dayOfWeek',
+    blacklist = {'id', 't_orderDate', 't_orderDateWOYear', 't_season', 't_dayOfWeek',
                  't_dayOfMonth', 't_isWeekend', 't_singleItemPrice_per_rrp', 't_atLeastOneReturned',
                  't_voucher_usedOnlyOnce_A', 't_voucher_stdDevDiscount_A', 't_voucher_OrderCount_A',
                  't_voucher_hasAbsoluteDiscountValue_A', 't_voucher_firstUsedDate_A',
-                 't_voucher_lastUsedDate_A']
-    for key in [k for k in blacklist if k in df.columns]:
-        df = df.drop(key, 1)
-    return df
+                 't_voucher_lastUsedDate_A'}
+    return df.drop(blacklist & set(df.columns), 1)
 
 
 def cleanse(df: pd.DataFrame) -> pd.DataFrame:
@@ -117,11 +115,11 @@ def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_dependent_features(df: pd.DataFrame) -> pd.DataFrame:
-    dependent.binned_color_code(df)
-    dependent.color_return_probability(df)
-    dependent.size_return_probability(df)
-    dependent.customer_return_probability(df)
-    dependent.product_group_return_probability(df)
+    dependent.customer_return_probability(df)  # customerReturnProb
+    dependent.color_return_probability(df)  # colorReturnProb
+    dependent.size_return_probability(df)  # sizeReturnProb
+    dependent.product_group_return_probability(df)  # productGroupReturnProb
+    dependent.binned_color_code(df)  # binnedColorCode
     return df
 
 
