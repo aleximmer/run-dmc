@@ -2,7 +2,7 @@ import unittest
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
 
-from dmc.preprocessing import cleanse, apply_features, add_independent_features
+from dmc.preprocessing import cleanse, apply_features
 
 
 class PreprocessingTest(unittest.TestCase):
@@ -57,7 +57,7 @@ class PreprocessingTest(unittest.TestCase):
         self.assertTrue(self.content_equal(actual_processed, expected_processed))
 
     def test_binned_color_return_probability(self):
-        processed = add_independent_features(self.data)
+        processed = apply_features(self.data)
         self.assertListEqual(['[0, 1992)', '[1993, 10000)', '[1993, 10000)', '[1992, 1993)',
                               '[0, 1992)', '[0, 1992)', '[0, 1992)', '[1993, 10000)'],
                              list(processed.binnedColorCode))
