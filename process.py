@@ -47,7 +47,7 @@ def processed_data() -> pd.DataFrame:
         return pd.DataFrame.from_csv(rel_file_path)
     data = dmc.data_train()
     data = dmc.preprocessing.cleanse(data)
-    data = dmc.preprocessing.feature(data)
+    data = dmc.preprocessing.apply_features(data)
     print('Finished processing. Dumping results to {}.'.format(rel_file_path))
     data.to_csv(rel_file_path, sep=',')
     return data

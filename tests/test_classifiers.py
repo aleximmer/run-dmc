@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 
-from dmc.preprocessing import cleanse, feature
+from dmc.preprocessing import cleanse, apply_features
 from dmc.transformation import transform, normalize_features
 from dmc.evaluation import precision
 from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM
@@ -19,7 +19,7 @@ class PrimitiveClassifierTest(unittest.TestCase):
     def setUp(self):
         df = pd.read_csv('tests/test_data.txt', delimiter=';')
         df = cleanse(df)
-        df = feature(df)
+        df = apply_features(df)
         X, Y = transform(df, scaler=normalize_features)
         self.X_tr, self.Y_tr = X[:6], Y[:6]
         self.X_te, self.Y_te = X[6:], Y[6:]
