@@ -7,6 +7,7 @@ from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, \
     BaggingClassifier, AdaBoostClassifier
+import tensorflow as tf
 
 
 class DMCClassifier:
@@ -125,3 +126,24 @@ class AdaSVM(AdaBoostEnsemble):
     def __init__(self, X: np.array, Y: np.array):
         self.classifier = SVC(decision_function_shape='ovo')
         super().__init__(X, Y)
+
+
+class TensorFlowNeuralNetwork(DMCClassifier):
+    num_steps = 100 # Use RandomSearch
+
+    def __init__(self, X: np.array, Y: np.array):
+        super().__init__(X, Y)
+
+        # Build basic tensorflow graph
+        graph = tf.Graph()
+        with graph.as_default():
+            pass
+        self.clf = graph
+
+    def fit(self):
+        with tf.Session(graph=self.clf) as session:
+            tf.initialize_all_variables().run()
+        return self
+
+    def predict(self, X: csr_matrix) -> np.array:
+        pass
