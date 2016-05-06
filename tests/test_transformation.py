@@ -11,7 +11,13 @@ class TransformationTest(unittest.TestCase):
         raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
         raw_data = raw_data.head(50)
         clean_data = cleanse(raw_data)
-        featured_data = apply_features(clean_data)
+        train_ids = raw_data.iloc[::2].orderID.tolist()
+        test_ids = raw_data.iloc[1::2].orderID.tolist()
+        clean_data = cleanse(raw_data)
+        data = {'data': clean_data, 'train_ids': train_ids, 'test_ids': test_ids}
+        featured_data = apply_features(data)
+        # TODO: Fix transform
+        # featured_data: {train: <df>, test: <df>}
         self.X, self.Y = transform(featured_data)
         self.X = self.X.toarray()
 

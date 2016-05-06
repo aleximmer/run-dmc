@@ -5,13 +5,17 @@ import holidays
 from dmc.features import dependent, independent
 
 
-def apply_features(df: pd.DataFrame):
+def apply_features(data: dict) -> dict:
     """Add features and drop unused ones.
     """
-    df = add_independent_features(df)
-    df = add_dependent_features(df)
-    df = remove_features(df)
-    return df
+    data['data'] = add_independent_features(data['data'])
+    data['train_ids'] = clean_ids(data['train_ids'])
+    data['test_ids'] = clean_ids(data['test_ids'])
+    train, test = split_train_test(data)
+    # TODO: Use enrich test data
+    train = add_dependent_features(train)
+    train = remove_features(train)
+    return {'train': train, 'test': test}
 
 
 def assert_constraints(df: pd.DataFrame) -> pd.DataFrame:
@@ -75,6 +79,19 @@ def cleanse(df: pd.DataFrame) -> pd.DataFrame:
     df = enforce_constraints(df)
     assert_constraints(df)
     return df
+
+
+def clean_ids(id_list: list) -> list:
+    return [int(x.replace('a', '')) for x in id_list]
+
+
+def split_train_test(data: dict) -> dict:
+    df = data['data']
+    train_ids = set(data['train_ids'])
+    test_ids = set(data['test_ids'])
+    train = df[df.orderID.isin(train_ids)].copy()
+    test = df[df.orderID.isin(test_ids)].copy()
+    return train, test
 
 
 def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:
