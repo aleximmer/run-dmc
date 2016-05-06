@@ -40,18 +40,21 @@ def eval_features(df: pd.DataFrame, size):
 
 
 def processed_data(id_file_prefix: str) -> pd.DataFrame:
-    # Cache processed data in "[idFilePrefix]Processed.csv"
-    rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) +
-                                 id_file_prefix + 'Processed.csv')
+    """Create or read DataFrame with all features that are independent"""
+    rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) + 'processed.csv')
     if os.path.isfile(rel_file_path):
-        ids = dmc.loading.load_ids(id_file_prefix)
-        return {**ids, 'data': pd.DataFrame.from_csv(rel_file_path)}
-    data = dmc.load_train_test(id_file_prefix)
-    data['data'] = dmc.preprocessing.cleanse(data['data'])
-    data = dmc.preprocessing.apply_features(data)
+        return pd.read_csv(rel_file_path)
+    df = dmc.data_train()
+    df = dmc.preprocessing.cleanse(df)
+    df = dmc.features.add_independent_features(df)
     print('Finished processing. Dumping results to {}.'.format(rel_file_path))
-    data['data'].to_csv(rel_file_path, sep=',')
-    return data
+    df.to_csv(rel_file_path, sep=',')
+    return df
+
+
+def split_data_by_id(df: pd.DataFrame, id_file_prefix: str) -> pd.DataFrame:
+    train_ids, test_ids = dmc.loading.load_ids(id_file_prefix)
+    train, test = dmc.preprocessing.split_train_test(df, train_ids, test_ids)
 
 
 if __name__ == '__main__':
@@ -60,6 +63,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     id_prefix = args.id_prefix
 
-    data = processed_data(id_prefix)
+    data = processed_data()
     eval_classifiers(data, 5000, 5000)
     eval_features(data, 5000)

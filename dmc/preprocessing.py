@@ -7,11 +7,7 @@ from dmc.features import add_dependent_features, add_independent_features
 def apply_features(data: dict) -> dict:
     """Add features and drop unused ones.
     """
-    data['data'] = add_independent_features(data['data'])
-    train, test = split_train_test(**data)
-    # TODO: Use enrich test data
     train = add_dependent_features(train)
-    train = remove_features(train)
     return {'train': train, 'test': test}
 
 
@@ -47,13 +43,20 @@ def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
                  't_dayOfMonth', 't_isWeekend', 't_singleItemPrice_per_rrp', 't_atLeastOneReturned',
                  't_voucher_usedOnlyOnce_A', 't_voucher_stdDevDiscount_A', 't_voucher_OrderCount_A',
                  't_voucher_hasAbsoluteDiscountValue_A', 't_voucher_firstUsedDate_A',
-                 't_voucher_lastUsedDate_A'}
+                 't_voucher_lastUsedDate_A', 't_customer_avgUnisize'}
     return df.drop(blacklist & set(df.columns), 1)
+
+
+def remove_features(df: pd.DataFrame) -> pd.DataFrame:
+    blacklist = ['t_customer_avgUnisize']  # t_voucher_firstUsedDate_A, t_voucher_lastUsedDate_A
+    df = df.drop(blacklist, 1)
+    return df
 
 
 def cleanse(df: pd.DataFrame) -> pd.DataFrame:
     df = drop_columns(df)
     df = parse_strings(df)
+    df = remove_features(df)
     df = enforce_constraints(df)
     return df
 
@@ -62,16 +65,10 @@ def clean_ids(id_list: list) -> list:
     return {int(x.replace('a', '')) for x in id_list}
 
 
-def split_train_test(data: pd.DataFrame, train_ids: list, test_ids: list) -> (pd.DataFrame,
-                                                                              pd.DataFrame):
+def split_train_test(data: pd.DataFrame, train_ids: list, test_ids: list) \
+        -> (pd.DataFrame, pd.DataFrame):
     train_ids = clean_ids(train_ids)
     test_ids = clean_ids(test_ids)
     train = data[data.orderID.isin(train_ids)].copy()
     test = data[data.orderID.isin(test_ids)].copy()
     return train, test
-
-
-def remove_features(df: pd.DataFrame) -> pd.DataFrame:
-    blacklist = ['t_customer_avgUnisize']  # t_voucher_firstUsedDate_A, t_voucher_lastUsedDate_A
-    df = df.drop(blacklist, 1)
-    return df
