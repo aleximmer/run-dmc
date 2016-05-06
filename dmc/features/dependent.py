@@ -2,44 +2,78 @@ import pandas as pd
 import numpy as np
 
 
+def group_return_probability(group: pd.Series) -> np.float64:
+    """Given the returnQuantities in a group as a Series, divide the number of rows with returns
+    (quantity > 0) by the number of rows in total.
+
+    Parameters
+    ----------
+    group: pd.Series
+        Series being the returnQuantities of a group.
+
+    Returns
+    -------
+    np.float64
+        The probability of row that falls in this group to result in a return.
+
+    Example
+    -------
+    >>> df.groupby('customerID').returnQuantity.apply(group_return_probability)
+
+    """
+    return group.astype(bool).sum() / len(group)
+
+
 def customer_return_probability(df: pd.DataFrame):
-    """Add a column that contains the likelihood of the customer to return a product.
-    Calculate this column by grouping for 'customerID' and dividing the number of rows with
-    returns by the number of total rows.
+    """Calculate likelihood of a specific customer to return a product.
 
     Parameters
     ----------
     df : pd.DataFrame
-        Table containing 'customerID' and 'returnQuantity' columns
+    Table containing 'customerID' and 'returnQuantity' columns
 
     """
-    def group_ret_prob(group):
-        return group.astype(bool).sum() / len(group)
-
-    customer_ret_probs = df.groupby('customerID').returnQuantity.apply(group_ret_prob)
-    customer_ret_probs = customer_ret_probs.reindex(df.customerID)
-    df['customerReturnProb'] = customer_ret_probs.values
+    customer_ret_probs = df.groupby('customerID')['returnQuantity'].apply(group_return_probability)
+    df['customerReturnProb'] = customer_ret_probs.reindex(df['customerID']).values
 
 
 def color_return_probability(df: pd.DataFrame):
-    returned_articles = df.groupby(['colorCode']).returnQuantity.sum()
-    bought_articles = df.groupby(['colorCode']).quantity.sum()
-    color_return_prob = returned_articles / bought_articles
-    df['colorReturnProb'] = pd.Series(list(color_return_prob.loc[df.colorCode]), index=df.index)
+    """Calculate likelihood of an order with a specific color to result in a return.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+    Table containing 'customerID' and 'returnQuantity' columns
+
+    """
+    color_ret_probs = df.groupby('colorCode')['returnQuantity'].apply(group_return_probability)
+    df['colorReturnProb'] = color_ret_probs.reindex(df['colorCode']).values
 
 
 def size_return_probability(df: pd.DataFrame):
-    returned_articles = df.groupby(['sizeCode']).returnQuantity.sum()
-    bought_articles = df.groupby(['sizeCode']).quantity.sum()
-    size_return_prob = returned_articles / bought_articles
-    df['sizeReturnProb'] = pd.Series(list(size_return_prob.loc[df.sizeCode]), index=df.index)
+    """Calculate likelihood of an order with a specific sizeCode to result in a return.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+    Table containing 'customerID' and 'returnQuantity' columns
+
+    """
+    color_ret_probs = df.groupby('sizeCode')['returnQuantity'].apply(group_return_probability)
+    df['sizeReturnProb'] = color_ret_probs.reindex(df['sizeCode']).values
 
 
 def product_group_return_probability(df: pd.DataFrame):
-    returned_articles = df.groupby(['productGroup']).returnQuantity.sum()
-    bought_articles = df.groupby(['productGroup']).quantity.sum()
-    product_group_return_prob = returned_articles / bought_articles
-    df['productGroupReturnProb'] = pd.Series(list(product_group_return_prob.loc[df.productGroup]), index=df.index)
+    """Calculate likelihood of an order with a specific productGroup to result in a return.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+    Table containing 'customerID' and 'returnQuantity' columns
+
+    """
+    color_ret_probs = df.groupby('productGroup')['returnQuantity'].apply(group_return_probability)
+    df['productGroupReturnProb'] = color_ret_probs.reindex(df['productGroup']).values
 
 
 def binned_color_code(df: pd.DataFrame, deviations=1.0):
@@ -64,10 +98,7 @@ def binned_color_code(df: pd.DataFrame, deviations=1.0):
     color_code_min = 0
     color_code_max = 9999
 
-    def ret_prob(d: pd.Series) -> np.float64:
-        return d.astype(bool).sum() / len(d)
-
-    cc_ret_probs = df.groupby('colorCode')['returnQuantity'].apply(ret_prob)
+    cc_ret_probs = df.groupby('colorCode')['returnQuantity'].apply(group_return_probability)
 
     mean = cc_ret_probs.mean()
     diff = cc_ret_probs.std() * deviations
