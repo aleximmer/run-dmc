@@ -2,15 +2,17 @@ import unittest
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
 
-from dmc.preprocessing import cleanse, apply_features
+from dmc.preprocessing import cleanse, apply_features, clean_ids, split_train_test
 
 
 class PreprocessingTest(unittest.TestCase):
     def setUp(self):
         raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
         raw_data = raw_data.head(50)
+        train_ids = ['a1000001', 'a1000002', 'a1000003']
+        test_ids = ['a1000007', 'a1000008']
         clean_data = cleanse(raw_data)
-        self.data = clean_data
+        self.data = {'data': clean_data, 'train_ids': train_ids, 'test_ids': test_ids}
 
     @staticmethod
     def content_equal(a, b):
@@ -21,15 +23,28 @@ class PreprocessingTest(unittest.TestCase):
             return False
 
     def test_preprocess(self):
-        processed_data = apply_features(self.data)
+        processed_data = apply_features(self.data)['train']
         self.assertIn('customerReturnProb', processed_data.columns)
         self.assertIn('totalOrderShare', processed_data.columns)
         self.assertIn('productGroupReturnProb', processed_data.columns)
         self.assertIn('colorReturnProb', processed_data.columns)
         self.assertIn('sizeReturnProb', processed_data.columns)
 
+    def test_split(self):
+        self.data['test_ids'] = clean_ids(self.data['test_ids'])
+        self.data['train_ids'] = clean_ids(self.data['train_ids'])
+        train, test = split_train_test(self.data)
+        train_ids = set(train.orderID.tolist())
+        test_ids = set(test.orderID.tolist())
+        for test_id in self.data['test_ids']:
+            self.assertIn(test_id, test_ids)
+            self.assertNotIn(test_ids, train_ids)
+        for train_id in self.data['train_ids']:
+            self.assertIn(train_id, train_ids)
+            self.assertNotIn(train_id, test_ids)
+
     def test_color_return_probability(self):
-        processed_data = apply_features(self.data)
+        processed_data = apply_features(self.data)['train']
         actual_processed = processed_data[['colorCode', 'colorReturnProb']]
         expected_processed = pd.DataFrame({'colorCode': [1972, 3854, 2974, 1992,
                                                          1968, 1972, 1001, 3976],
@@ -37,27 +52,27 @@ class PreprocessingTest(unittest.TestCase):
         self.assertTrue(self.content_equal(actual_processed, expected_processed))
 
     def test_product_group_return_probability(self):
-        processed_data = apply_features(self.data)
+        processed_data = apply_features(self.data)['train']
         actual_processed = processed_data[['productGroupReturnProb']]
         expected_processed = pd.DataFrame({
             'productGroupReturnProb': [0., 0., 1 / 6, 1 / 6, 1 / 6, 1 / 6, 1 / 6, 1 / 6]})
         self.assertTrue(self.content_equal(actual_processed, expected_processed))
 
     def test_size_return_probability(self):
-        processed_data = apply_features(self.data)
+        processed_data = apply_features(self.data)['train']
         actual_processed = processed_data[['sizeReturnProb']]
         expected_processed = pd.DataFrame({
             'sizeReturnProb': [0., 0., 0.5, 0.5, 0, 0, 0, 0]})
         self.assertTrue(self.content_equal(actual_processed, expected_processed))
 
     def test_is_german_holiday(self):
-        processed_data = apply_features(self.data)
+        processed_data = apply_features(self.data)['train']
         actual_processed = processed_data[['orderIsOnGermanHoliday']]
         expected_processed = pd.DataFrame({'orderIsOnGermanHoliday': [1, 0, 0, 1, 1, 1, 1, 1]})
         self.assertTrue(self.content_equal(actual_processed, expected_processed))
 
     def test_binned_color_return_probability(self):
-        processed = apply_features(self.data)
+        processed = apply_features(self.data)['train']
         self.assertListEqual(['[0, 1992)', '[1993, 10000)', '[1993, 10000)', '[1992, 1993)',
                               '[0, 1992)', '[0, 1992)', '[0, 1992)', '[1993, 10000)'],
                              list(processed.binnedColorCode))

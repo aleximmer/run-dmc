@@ -1,4 +1,5 @@
 import os.path
+import argparse
 import pandas as pd
 import numpy as np
 
@@ -7,8 +8,6 @@ from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork
 from dmc.classifiers import TreeBag, BayesBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
 
-
-processed_file = '/data/processed.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
 basic = [DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork]
@@ -40,20 +39,28 @@ def eval_features(df: pd.DataFrame, size):
     print(ft_importance.sort_values('tree', ascending=False))
 
 
-def processed_data() -> pd.DataFrame:
+def processed_data(id_file_prefix: str) -> pd.DataFrame:
+    # Cache processed data in "[idFilePrefix]Processed.csv"
     rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) +
-                                 processed_file)
+                                 id_file_prefix + 'Processed.csv')
     if os.path.isfile(rel_file_path):
-        return pd.DataFrame.from_csv(rel_file_path)
-    data = dmc.data_train()
-    data = dmc.preprocessing.cleanse(data)
+        ids = dmc.loading.load_ids(id_file_prefix)
+        data = {'data': pd.DataFrame.from_csv(rel_file_path)}
+        return dict(data, **ids)
+    data = dmc.load_train_test(id_file_prefix)
+    data['data'] = dmc.preprocessing.cleanse(data['data'])
     data = dmc.preprocessing.apply_features(data)
     print('Finished processing. Dumping results to {}.'.format(rel_file_path))
-    data.to_csv(rel_file_path, sep=',')
+    data['data'].to_csv(rel_file_path, sep=',')
     return data
 
 
 if __name__ == '__main__':
-    data = processed_data()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('id_prefix', help='prefix of the id file to use')
+    args = parser.parse_args()
+    id_prefix = args.id_prefix
+
+    data = processed_data(id_prefix)
     eval_classifiers(data, 5000, 5000)
     eval_features(data, 5000)
