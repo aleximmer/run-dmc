@@ -67,7 +67,6 @@ def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
     new_features = set(df.columns.tolist()) - SelectedFeatures.get_all_features()
     if len(new_features):
         print('>>> New features found in df: {}'.format(new_features))
-
     whitelist = SelectedFeatures.get_whitelist()
     for key in [k for k in df.columns if k not in whitelist]:
         df = df.drop(key, 1)
@@ -135,11 +134,11 @@ def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_dependent_features(df: pd.DataFrame) -> pd.DataFrame:
-    dependent.binned_color_code(df)
-    dependent.color_return_probability(df)
-    dependent.size_return_probability(df)
-    dependent.customer_return_probability(df)
-    dependent.product_group_return_probability(df)
+    dependent.customer_return_probability(df)  # customerReturnProb
+    dependent.color_return_probability(df)  # colorReturnProb
+    dependent.size_return_probability(df)  # sizeReturnProb
+    dependent.product_group_return_probability(df)  # productGroupReturnProb
+    dependent.binned_color_code(df)  # binnedColorCode
     return df
 
 
