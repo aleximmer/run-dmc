@@ -6,14 +6,16 @@ def customer_return_probability(df: pd.DataFrame):
     returned_articles = df.groupby(['customerID']).returnQuantity.sum()
     bought_articles = df.groupby(['customerID']).quantity.sum()
     customer_return_prob = returned_articles / bought_articles
-    df['customerReturnProb'] = pd.Series(list(customer_return_prob.loc[df.customerID]), index=df.index)
+    df['customerReturnProb'] = pd.Series(list(customer_return_prob.loc[df.customerID]),
+                                         index=df.index)
 
 
 def color_return_probability(df: pd.DataFrame):
     returned_articles = df.groupby(['colorCode']).returnQuantity.sum()
     bought_articles = df.groupby(['colorCode']).quantity.sum()
     color_return_prob = returned_articles / bought_articles
-    df['colorReturnProb'] = pd.Series(list(color_return_prob.loc[df.colorCode]), index=df.index)
+    df['colorReturnProb'] = pd.Series(list(color_return_prob.loc[df.colorCode]),
+                                      index=df.index)
 
 
 def size_return_probability(df: pd.DataFrame):
@@ -27,7 +29,8 @@ def product_group_return_probability(df: pd.DataFrame):
     returned_articles = df.groupby(['productGroup']).returnQuantity.sum()
     bought_articles = df.groupby(['productGroup']).quantity.sum()
     product_group_return_prob = returned_articles / bought_articles
-    df['productGroupReturnProb'] = pd.Series(list(product_group_return_prob.loc[df.productGroup]), index=df.index)
+    df['productGroupReturnProb'] = pd.Series(list(product_group_return_prob.loc[df.productGroup]),
+                                             index=df.index)
 
 
 def binned_color_code(df: pd.DataFrame, deviations=1.0):
