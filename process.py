@@ -45,8 +45,7 @@ def processed_data(id_file_prefix: str) -> pd.DataFrame:
                                  id_file_prefix + 'Processed.csv')
     if os.path.isfile(rel_file_path):
         ids = dmc.loading.load_ids(id_file_prefix)
-        data = {'data': pd.DataFrame.from_csv(rel_file_path)}
-        return dict(data, **ids)
+        return {**ids, 'data': pd.DataFrame.from_csv(rel_file_path)}
     data = dmc.load_train_test(id_file_prefix)
     data['data'] = dmc.preprocessing.cleanse(data['data'])
     data = dmc.preprocessing.apply_features(data)
