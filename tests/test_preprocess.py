@@ -54,37 +54,3 @@ class PreprocessingTest(unittest.TestCase):
         for train_id in clean_ids(self.data['train_ids']):
             self.assertIn(train_id, train_ids)
             self.assertNotIn(train_id, test_ids)
-
-    def test_color_return_probability(self):
-        processed_data = apply_features(self.data)['train']
-        actual_processed = processed_data[['colorCode', 'colorReturnProb']]
-        expected_processed = pd.DataFrame({'colorCode': [1972, 3854, 2974, 1992,
-                                                         1968, 1972, 1001, 3976],
-                                           'colorReturnProb': [0., 0., 0., 1., 0., 0., 0., 0.]})
-        self.assertTrue(self.content_equal(actual_processed, expected_processed))
-
-    def test_product_group_return_probability(self):
-        processed_data = apply_features(self.data)['train']
-        actual_processed = processed_data[['productGroupReturnProb']]
-        expected_processed = pd.DataFrame({
-            'productGroupReturnProb': [0., 0., 1 / 6, 1 / 6, 1 / 6, 1 / 6, 1 / 6, 1 / 6]})
-        self.assertTrue(self.content_equal(actual_processed, expected_processed))
-
-    def test_size_return_probability(self):
-        processed_data = apply_features(self.data)['train']
-        actual_processed = processed_data[['sizeReturnProb']]
-        expected_processed = pd.DataFrame({
-            'sizeReturnProb': [0., 0., 0.5, 0.5, 0, 0, 0, 0]})
-        self.assertTrue(self.content_equal(actual_processed, expected_processed))
-
-    def test_is_german_holiday(self):
-        processed_data = apply_features(self.data)['train']
-        actual_processed = processed_data[['orderIsOnGermanHoliday']]
-        expected_processed = pd.DataFrame({'orderIsOnGermanHoliday': [1, 0, 0, 1, 1, 1, 1, 1]})
-        self.assertTrue(self.content_equal(actual_processed, expected_processed))
-
-    def test_binned_color_return_probability(self):
-        processed = apply_features(self.data)['train']
-        self.assertListEqual(['[0, 1992)', '[1993, 10000)', '[1993, 10000)', '[1992, 1993)',
-                              '[0, 1992)', '[0, 1992)', '[0, 1992)', '[1993, 10000)'],
-                             list(processed.binnedColorCode))
