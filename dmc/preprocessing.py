@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+from dmc.selected_features import SelectedFeatures
+
 
 def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
     """Drop data which doesn't comply with constraints
@@ -30,12 +32,13 @@ def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
     - binary target is an option for benchmarking later
     - last six are dropped because of amateurish feature engineering
     """
-    blacklist = {'id', 't_orderDate', 't_orderDateWOYear', 't_season', 't_dayOfWeek',
-                 't_dayOfMonth', 't_isWeekend', 't_singleItemPrice_per_rrp', 't_atLeastOneReturned',
-                 't_voucher_usedOnlyOnce_A', 't_voucher_stdDevDiscount_A', 't_voucher_OrderCount_A',
-                 't_voucher_hasAbsoluteDiscountValue_A', 't_voucher_firstUsedDate_A',
-                 't_voucher_lastUsedDate_A', 't_customer_avgUnisize'}
-    return df.drop(blacklist & set(df.columns), 1)
+    new_features = set(df.columns.tolist()) - SelectedFeatures.get_all_features()
+    if len(new_features):
+        print('>>> New features found in df: {}'.format(new_features))
+    whitelist = SelectedFeatures.get_whitelist()
+    for key in [k for k in df.columns if k not in whitelist]:
+        df = df.drop(key, 1)
+    return df
 
 
 def cleanse(df: pd.DataFrame) -> pd.DataFrame:
