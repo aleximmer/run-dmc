@@ -1,15 +1,6 @@
 import pandas as pd
 import numpy as np
 
-from dmc.features import add_dependent_features, add_independent_features
-
-
-def apply_features(data: dict) -> dict:
-    """Add features and drop unused ones.
-    """
-    train = add_dependent_features(train)
-    return {'train': train, 'test': test}
-
 
 def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
     """Drop data which doesn't comply with constraints
@@ -47,16 +38,9 @@ def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop(blacklist & set(df.columns), 1)
 
 
-def remove_features(df: pd.DataFrame) -> pd.DataFrame:
-    blacklist = ['t_customer_avgUnisize']  # t_voucher_firstUsedDate_A, t_voucher_lastUsedDate_A
-    df = df.drop(blacklist, 1)
-    return df
-
-
 def cleanse(df: pd.DataFrame) -> pd.DataFrame:
     df = drop_columns(df)
     df = parse_strings(df)
-    df = remove_features(df)
     df = enforce_constraints(df)
     return df
 
