@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 def unknown_categories(column, train: pd.DataFrame, test: pd.DataFrame):
@@ -29,7 +30,9 @@ def split(train: pd.DataFrame, test: pd.DataFrame) -> list():
         specifier = '-'.join(['known' + str(e[1]) if e[0] else 'unknown' + str(e[1])
                               for e in zip(vec, potentially_unknown)])
         unknown = [e[1] for e in zip(vec, potentially_unknown) if not e[0]]
-        train_crop = train.copy().drop(unknown, axis=1)
-        test_group = group.copy().drop(unknown + splitters, axis=1)
+        nans = [col for col in group.columns
+                if group[col].dtype == float and np.isnan(group[col]).any()]
+        train_crop = train.copy().drop(unknown + nans, axis=1)
+        test_group = group.copy().drop(unknown + nans + splitters, axis=1)
         result.append((train_crop, test_group, specifier))
     return result
