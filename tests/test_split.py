@@ -8,7 +8,7 @@ from dmc.ensemble import split
 
 class SplitTest(unittest.TestCase):
     def setUp(self):
-        raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
+        raw_data = pd.read_csv('tests/test_data_old.txt', delimiter=';')
         raw_data = raw_data.head(50)
         self.clean_data = cleanse(raw_data)
         self.train = self.clean_data[:5]
