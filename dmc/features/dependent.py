@@ -3,10 +3,22 @@ import numpy as np
 
 
 def customer_return_probability(df: pd.DataFrame):
-    returned_articles = df.groupby(['customerID']).returnQuantity.sum()
-    bought_articles = df.groupby(['customerID']).quantity.sum()
-    customer_return_prob = returned_articles / bought_articles
-    df['customerReturnProb'] = pd.Series(list(customer_return_prob.loc[df.customerID]), index=df.index)
+    """Add a column that contains the likelihood of the customer to return a product.
+    Calculate this column by grouping for 'customerID' and dividing the number of rows with
+    returns by the number of total rows.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Table containing 'customerID' and 'returnQuantity' columns
+
+    """
+    def group_ret_prob(group):
+        return group.astype(bool).sum() / len(group)
+
+    customer_ret_probs = df.groupby('customerID').returnQuantity.apply(group_ret_prob)
+    customer_ret_probs = customer_ret_probs.reindex(df.customerID)
+    df['customerReturnProb'] = customer_ret_probs.values
 
 
 def color_return_probability(df: pd.DataFrame):
@@ -48,14 +60,9 @@ def binned_color_code(df: pd.DataFrame, deviations=1.0):
         Number of standard deviations a return probability has to differ from the mean to be
         considered an outlier.
 
-    Returns
-    -------
-    pd.Series
-        Series with a bin assigned to each row
-
     """
-    COLOR_CODE_MIN = 0
-    COLOR_CODE_MAX = 9999
+    color_code_min = 0
+    color_code_max = 9999
 
     def ret_prob(d: pd.Series) -> np.float64:
         return d.astype(bool).sum() / len(d)
@@ -67,7 +74,7 @@ def binned_color_code(df: pd.DataFrame, deviations=1.0):
 
     mean_distances = cc_ret_probs.sub(mean).abs()
 
-    bins = [COLOR_CODE_MIN]
+    bins = [color_code_min]
 
     # iterate over colorCodes and respective mean distances to collect bins
     for cc, mean_distance in mean_distances.items():
@@ -77,7 +84,7 @@ def binned_color_code(df: pd.DataFrame, deviations=1.0):
             if bins[-1] != cc:
                 bins.append(cc)
             bins.append(cc + 1)
-    bins.append(COLOR_CODE_MAX + 1)
+    bins.append(color_code_max + 1)
 
     cut = list(pd.cut(df.colorCode, bins, right=False))
     df['binnedColorCode'] = pd.Series(cut, index=df.index)
