@@ -1,7 +1,8 @@
 import unittest
 import pandas as pd
 
-from dmc.preprocessing import cleanse, apply_features
+from dmc.preprocessing import cleanse
+from dmc.features import add_independent_features
 from dmc.transformation import transform, normalize_features
 from dmc.evaluation import precision
 from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM
@@ -17,16 +18,14 @@ ada = [AdaTree, AdaBayes, AdaSVM]
 
 class PrimitiveClassifierTest(unittest.TestCase):
     def setUp(self):
-        raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
+        raw_data = pd.read_csv('tests/test_data_old.txt', delimiter=';')
         raw_data = raw_data.head(50)
         clean_data = cleanse(raw_data)
         train_ids = raw_data.iloc[::2].orderID.tolist()
         test_ids = raw_data.iloc[1::2].orderID.tolist()
         clean_data = cleanse(raw_data)
-        data = {'data': clean_data, 'train_ids': train_ids, 'test_ids': test_ids}
-        data = apply_features(data)
+        data = add_independent_features(clean_data)
         # TODO: Fix transform
-        # featured_data: {train: <df>, test: <df>}
         X, Y = transform(data, scaler=normalize_features)
         self.X_tr, self.Y_tr = X[:6], Y[:6]
         self.X_te, self.Y_te = X[6:], Y[6:]

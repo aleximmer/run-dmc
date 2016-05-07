@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 from pandas.util.testing import assert_frame_equal
 
-from dmc.preprocessing import cleanse, apply_features, clean_ids, split_train_test
+from dmc.preprocessing import cleanse, clean_ids, split_train_test
+from dmc.features import add_independent_features, add_dependent_features
 
 
 class PreprocessingTest(unittest.TestCase):
@@ -37,12 +38,20 @@ class PreprocessingTest(unittest.TestCase):
         self.assertTrue(df.voucherID.dtype == np.float)
 
     def test_preprocess(self):
-        processed_data = apply_features(self.data)['train']
-        self.assertIn('customerReturnProb', processed_data.columns)
-        self.assertIn('totalOrderShare', processed_data.columns)
-        self.assertIn('productGroupReturnProb', processed_data.columns)
-        self.assertIn('colorReturnProb', processed_data.columns)
-        self.assertIn('sizeReturnProb', processed_data.columns)
+        train, test = split_train_test(**self.data)
+        train, test = add_dependent_features(train, test)
+        self.assertIn('customerReturnProb', test.columns)
+        self.assertIn('productGroupReturnProb', test.columns)
+        self.assertIn('colorReturnProb', test.columns)
+        self.assertIn('sizeReturnProb', test.columns)
+        self.assertIn('customerReturnProb', train.columns)
+        self.assertIn('productGroupReturnProb', train.columns)
+        self.assertIn('colorReturnProb', train.columns)
+        self.assertIn('sizeReturnProb', train.columns)
+
+    def test_independent_features(self):
+        data = add_independent_features(self.data['data'])
+        self.assertIn('totalOrderShare', data.columns)
 
     def test_split(self):
         train, test = split_train_test(**self.data)
