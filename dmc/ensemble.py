@@ -65,8 +65,6 @@ class Ensemble:
             results.append((len(self.splits[s]['test'][1]), prec, cost))
         all_prec, all_cost, full_size = 0, 0, len(self.test)
         for size, prec, cost in results:
-            all_prec += size/full_size * prec
+            all_prec += size / full_size * prec
             all_cost += cost
         print(all_prec, all_cost)
-
-

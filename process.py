@@ -34,6 +34,7 @@ def eval_ensemble(train: pd.DataFrame, test: pd.DataFrame):
     ensemble.transform(binary_target=True)
     ensemble.classify()
 
+
 def eval_features(df: pd.DataFrame):
     ft_importance = dmc.evaluation.evaluate_features_by_ensemble(df)
     print(ft_importance.sort_values('tree', ascending=False))
@@ -70,5 +71,5 @@ if __name__ == '__main__':
     split_point = len(train)
 
     eval_ensemble(train, test)
-    #eval_classifiers(data, split_point)
-    #eval_features(data[:split_point])
+    eval_classifiers(data, split_point)
+    eval_features(data[:split_point])
