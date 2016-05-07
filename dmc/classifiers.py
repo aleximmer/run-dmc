@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 from scipy.sparse import csr_matrix
 import theanets as tn
@@ -24,7 +23,7 @@ class DMCClassifier:
         self.Y = Y
         self.tune_parameters = tune_parameters
 
-    def __call__(self, df: pd.DataFrame) -> np.array:
+    def __call__(self, X: csr_matrix) -> np.array:
         if(self.tune_parameters):
             print(self.clf.get_params().keys())
             try:
@@ -34,7 +33,7 @@ class DMCClassifier:
                 print(e)
                 pass
         self.fit()
-        return self.predict(df)
+        return self.predict(X)
 
     def report(self, grid_scores, n_top=3):
         top_scores = sorted(

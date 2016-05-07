@@ -1,7 +1,9 @@
 import unittest
 import pandas as pd
-import dmc
-from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork
+from dmc.preprocessing import cleanse, feature
+from dmc.transformation import transform, normalize_features
+from dmc.evaluation import precision
+from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM
 from dmc.classifiers import TreeBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
 
@@ -15,9 +17,9 @@ ada = [AdaTree, AdaBayes, AdaSVM]
 class PrimitiveClassifierTest(unittest.TestCase):
     def setUp(self):
         df = pd.read_csv('tests/test_data.txt', delimiter=';')
-        df = dmc.cleansing.cleanse(df)
-        df = dmc.preprocessing.featuring(df)
-        X, Y = dmc.transformation.transform(df, scaler=dmc.normalization.normalize_features)
+        df = cleanse(df)
+        df = feature(df)
+        X, Y = transform(df, scaler=normalize_features)
         self.X_tr, self.Y_tr = X[:6], Y[:6]
         self.X_te, self.Y_te = X[6:], Y[6:]
 
@@ -25,5 +27,5 @@ class PrimitiveClassifierTest(unittest.TestCase):
         for classifier in (basic + bag + ada):
             clf = classifier(self.X_tr, self.Y_tr, False)
             res = clf(self.X_te)
-            precision = dmc.evaluation.precision(res, self.Y_te)
-            self.assertEqual(precision, 1.0)
+            pred_precision = precision(res, self.Y_te)
+            self.assertEqual(pred_precision, 1.0)

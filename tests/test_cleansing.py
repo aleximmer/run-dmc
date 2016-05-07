@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 
-import dmc
+from dmc.preprocessing import cleanse
 
 
 class CleansingTest(unittest.TestCase):
@@ -11,4 +11,4 @@ class CleansingTest(unittest.TestCase):
         self.data = raw_data
 
     def test_cleanse(self):
-        dmc.cleansing.cleanse(self.data)
+        cleanse(self.data)
