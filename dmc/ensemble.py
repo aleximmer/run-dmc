@@ -58,11 +58,11 @@ class Ensemble:
         results = []
         classifiers = [Forest] * len(self.splits) if classifiers is None else classifiers
         for s, classifier in zip(self.splits, classifiers):
-            clf = classifier(**self.splits[s]['train'])
+            clf = classifier(*self.splits[s]['train'])
             pred = clf(self.splits[s]['test'][0])
             prec = precision(pred, self.splits[s]['test'][1])
             cost = dmc_cost(pred, self.splits[s]['test'][1])
-            results.append((len(self.splits['test'][1]), prec, cost))
+            results.append((len(self.splits[s]['test'][1]), prec, cost))
         all_prec, all_cost, full_size = 0, 0, len(self.test)
         for size, prec, cost in results:
             all_prec += size/full_size * prec
