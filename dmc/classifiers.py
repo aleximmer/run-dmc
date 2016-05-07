@@ -101,13 +101,13 @@ class NaiveBayes(DMCClassifier):
 
 
 class SVM(DMCClassifier):
-    def __init__(self, X: csr_matrix, Y: np.array):
-        super().__init__(X, Y)
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters: bool):
+        super().__init__(X, Y, tune_parameters)
         self.clf = SVC(decision_function_shape='ovo')
 
 
 class NeuralNetwork(DMCClassifier):
-    def __init__(self, X: csr_matrix, Y: np.array):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters: bool):
         super().__init__(X, Y)
         input_layer, output_layer = self.X.shape[1], len(np.unique(Y))
         inp = tn.layers.base.Input(size=input_layer, sparse='csr')
@@ -148,8 +148,8 @@ class SVMBag(DMCClassifier):
     max_features = .5
     max_samples = .5
 
-    def __init__(self, X: csr_matrix, Y: np.array):
-        super().__init__(X, Y)
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters: bool):
+        super().__init__(X, Y, tune_parameters)
         self.X, self.Y = X.toarray(), Y
         self.classifier = SVC(decision_function_shape='ovo')
         self.clf = BaggingClassifier(self.classifier,
@@ -195,6 +195,6 @@ class AdaBayes(AdaBoostEnsemble):
 class AdaSVM(AdaBoostEnsemble):
     algorithm = 'SAMME'
 
-    def __init__(self, X: np.array, Y: np.array):
+    def __init__(self, X: np.array, Y: np.array, tune_parameters: bool):
         self.classifier = SVC(decision_function_shape='ovo')
-        super().__init__(X, Y)
+        super().__init__(X, Y, tune_parameters)

@@ -2,13 +2,13 @@ import unittest
 import pandas as pd
 import dmc
 from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork
-from dmc.classifiers import TreeBag, BayesBag, SVMBag
+from dmc.classifiers import TreeBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
 
 
 # Neural Network would be required to have other layers
 basic = [DecisionTree, Forest, NaiveBayes, SVM]
-bag = [TreeBag, BayesBag, SVMBag]
+bag = [TreeBag, SVMBag]
 ada = [AdaTree, AdaBayes, AdaSVM]
 
 
@@ -23,7 +23,7 @@ class PrimitiveClassifierTest(unittest.TestCase):
 
     def testClassifers(self):
         for classifier in (basic + bag + ada):
-            clf = classifier(self.X_tr, self.Y_tr)
+            clf = classifier(self.X_tr, self.Y_tr, False)
             res = clf(self.X_te)
             precision = dmc.evaluation.precision(res, self.Y_te)
             self.assertEqual(precision, 1.0)
