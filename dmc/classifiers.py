@@ -17,7 +17,7 @@ from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
 class DMCClassifier:
     clf = None
 
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters: bool):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         assert len(Y) == X.shape[0]
         self.X = X
         self.Y = Y
@@ -67,7 +67,7 @@ class DMCClassifier:
 
 
 class DecisionTree(DMCClassifier):
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters: bool):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters)
         if tune_parameters:
             self.param_dist_random = {'max_depth': sp_randint(1, 100),
@@ -81,7 +81,7 @@ class DecisionTree(DMCClassifier):
 
 
 class Forest(DMCClassifier):
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters: bool):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters)
         if tune_parameters:
             self.param_dist_random = {'max_depth': sp_randint(1, 100),
@@ -100,13 +100,13 @@ class NaiveBayes(DMCClassifier):
 
 
 class SVM(DMCClassifier):
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters: bool):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters)
         self.clf = SVC(decision_function_shape='ovo')
 
 
 class NeuralNetwork(DMCClassifier):
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters: bool):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         super().__init__(X, Y)
         input_layer, output_layer = self.X.shape[1], len(np.unique(Y))
         inp = tn.layers.base.Input(size=input_layer, sparse='csr')
@@ -123,18 +123,15 @@ class BagEnsemble(DMCClassifier):
     max_features = .5
     max_samples = .5
 
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters: bool):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters)
         if tune_parameters:
             self.param_dist_random = {'max_features': sp_randint(1, self.X.shape[1]),
                                       'n_estimators': sp_randint(1, 100)}
             self.param_dist_grid = {'max_features': [10, 20, 30],
                                     'n_estimators': [30, 50, 70]}
-        self.clf = BaggingClassifier(self.classifier,
-                                     n_estimators=self.estimators,
-                                     n_jobs=8,
-                                     max_samples=self.max_samples,
-                                     max_features=self.max_features)
+        self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
+                                     max_samples=self.max_samples, max_features=self.max_features)
 
 
 class TreeBag(BagEnsemble):
@@ -147,15 +144,12 @@ class SVMBag(DMCClassifier):
     max_features = .5
     max_samples = .5
 
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters: bool):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters)
         self.X, self.Y = X.toarray(), Y
         self.classifier = SVC(decision_function_shape='ovo')
-        self.clf = BaggingClassifier(self.classifier,
-                                     n_estimators=self.estimators,
-                                     n_jobs=8,
-                                     max_samples=self.max_samples,
-                                     max_features=self.max_features)
+        self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
+                                     max_samples=self.max_samples, max_features=self.max_features)
 
     def predict(self, X: csr_matrix):
         X = X.toarray()
@@ -168,7 +162,7 @@ class AdaBoostEnsemble(DMCClassifier):
     learning_rate = .5
     algorithm = 'SAMME.R'
 
-    def __init__(self, X: np.array, Y: np.array, tune_parameters: bool):
+    def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters)
         if tune_parameters:
             self.param_dist_random = {'n_estimators': sp_randint(1, 1000),
@@ -177,10 +171,8 @@ class AdaBoostEnsemble(DMCClassifier):
             self.param_dist_grid = {'n_estimators': [100, 200, 400, 900, 1000],
                                     'algorithm': ['SAMME', 'SAMME.R'],
                                     'learning_rate': [.1, .2, 0.25, .3, .4, .5, .6]}
-        self.clf = AdaBoostClassifier(self.classifier,
-                                      n_estimators=self.estimators,
-                                      learning_rate=self.learning_rate,
-                                      algorithm=self.algorithm)
+        self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
+                                      learning_rate=self.learning_rate, algorithm=self.algorithm)
 
 
 class AdaTree(AdaBoostEnsemble):
