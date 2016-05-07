@@ -16,7 +16,8 @@ class SplitTest(unittest.TestCase):
 
     def test_standard_split(self):
         res = split(self.train, self.test)
-        for s in res:
+        new_res = [(res[k][0], res[k][1], k) for k in res]
+        for s in new_res:
             self.assertTrue(len(s[0].columns) <= len(self.train.columns))
             self.assertTrue(len(s[1].columns) == len(s[0].columns))
             x = len([e for e in s[2].split('-') if 'unknown' in e])
@@ -28,7 +29,8 @@ class SplitTest(unittest.TestCase):
         data['returnProb'] = data['articleID'].apply(lambda l: 1 if l not in unknown else np.nan)
         train, test = data[:5], data[5:]
         res = split(train, test)
-        for s in res:
+        new_res = [(res[k][0], res[k][1], k) for k in res]
+        for s in new_res:
             self.assertTrue(len(s[0].columns) <= len(data.columns))
             self.assertTrue(len(s[1].columns) == len(s[0].columns))
             # double because unknown col has also nan col in this test

@@ -21,11 +21,7 @@ class PrimitiveClassifierTest(unittest.TestCase):
         raw_data = pd.read_csv('tests/test_data_old.txt', delimiter=';')
         raw_data = raw_data.head(50)
         clean_data = cleanse(raw_data)
-        train_ids = raw_data.iloc[::2].orderID.tolist()
-        test_ids = raw_data.iloc[1::2].orderID.tolist()
-        clean_data = cleanse(raw_data)
         data = add_independent_features(clean_data)
-        # TODO: Fix transform
         X, Y = transform(data, scaler=normalize_features)
         self.X_tr, self.Y_tr = X[:6], Y[:6]
         self.X_te, self.Y_te = X[6:], Y[6:]

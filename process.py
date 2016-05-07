@@ -49,9 +49,8 @@ def processed_data() -> pd.DataFrame:
 def split_data_by_id(df: pd.DataFrame, id_file_prefix: str) -> (pd.DataFrame, int):
     train_ids, test_ids = dmc.loading.load_ids(id_file_prefix)
     train, test = dmc.preprocessing.split_train_test(df, train_ids, test_ids)
-    #dmc.features.add_dependent_features(train)
-    # TODO: also add those values to test
-    return pd.concat([train, test]), len(train)
+    train, test = dmc.features.add_dependent_features(train, test)
+    return train, test
 
 
 if __name__ == '__main__':
@@ -61,7 +60,9 @@ if __name__ == '__main__':
     id_prefix = args.id_prefix
 
     data = processed_data()
-    data, split_point = split_data_by_id(data, id_prefix)
+    train, test = split_data_by_id(data, id_prefix)
+    split_point = len(train)
+    mixed_data = pd.concat([train, test])
 
     eval_classifiers(data, split_point)
     eval_features(data[:split_point])
