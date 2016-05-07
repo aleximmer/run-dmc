@@ -6,6 +6,7 @@ import dmc
 from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork
 from dmc.classifiers import TreeBag, BayesBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
+from dmc.ensemble import Ensemble
 
 
 processed_file = '/data/processed.csv'
@@ -27,6 +28,11 @@ def eval_classifiers(df: pd.DataFrame, split: int):
         precision = dmc.evaluation.precision(res, test[1])
         print(precision, ' using ', str(classifier))
 
+
+def eval_ensemble(train: pd.DataFrame, test: pd.DataFrame):
+    ensemble = Ensemble(train, test)
+    ensemble.transform(binary_target=True)
+    ensemble.classify()
 
 def eval_features(df: pd.DataFrame):
     ft_importance = dmc.evaluation.evaluate_features_by_ensemble(df)
@@ -62,7 +68,7 @@ if __name__ == '__main__':
     data = processed_data()
     train, test = split_data_by_id(data, id_prefix)
     split_point = len(train)
-    mixed_data = pd.concat([train, test])
 
-    eval_classifiers(data, split_point)
-    eval_features(data[:split_point])
+    eval_ensemble(train, test)
+    #eval_classifiers(data, split_point)
+    #eval_features(data[:split_point])
