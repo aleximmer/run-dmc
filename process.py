@@ -7,7 +7,7 @@ from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork
 from dmc.classifiers import TreeBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
 
-tune_parameters = False
+
 processed_file = '/data/processed.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
@@ -20,7 +20,7 @@ def shuffle(df: pd.DataFrame) -> pd.DataFrame:
     return df.reindex(np.random.permutation(df.index))
 
 
-def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
+def eval_classifiers(df: pd.DataFrame, tr_size, te_size, tune_parameters):
     df = shuffle(df)
     df = df[:te_size + tr_size]
     X, Y = dmc.transformation.transform(df, scaler=dmc.transformation.scale_features,
@@ -55,5 +55,5 @@ def processed_data() -> pd.DataFrame:
 
 if __name__ == '__main__':
     data = processed_data()
-    eval_classifiers(data, 5000, 5000)
+    eval_classifiers(data, 5000, 5000, tune_parameters=False)
     eval_features(data, 5000)
