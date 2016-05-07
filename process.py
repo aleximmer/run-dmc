@@ -5,7 +5,7 @@ import numpy as np
 import dmc
 from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork
 from dmc.classifiers import TreeBag, BayesBag, SVMBag
-from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
+from dmc.classifiers import AdaTree, AdaBayes, AdaSVM, GradBoost
 
 
 processed_file = '/data/processed.csv'
@@ -13,7 +13,7 @@ processed_file = '/data/processed.csv'
 # Remove classifiers which you don't want to run and add new ones here
 basic = [DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork]
 bag = [TreeBag, BayesBag, SVMBag]
-ada = [AdaTree, AdaBayes, AdaSVM]
+ada = [GradBoost, AdaTree, AdaBayes, AdaSVM]
 
 
 def shuffle(df: pd.DataFrame) -> pd.DataFrame:

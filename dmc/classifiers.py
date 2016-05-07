@@ -5,7 +5,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, \
-    BaggingClassifier, AdaBoostClassifier
+    BaggingClassifier, AdaBoostClassifier, GradientBoostingClassifier
 
 
 class DMCClassifier:
@@ -30,7 +30,6 @@ class DMCClassifier:
 
 class DecisionTree(DMCClassifier):
     clf = DecisionTreeClassifier()
-
 
 class Forest(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array):
@@ -62,9 +61,9 @@ class NeuralNetwork(DMCClassifier):
 
 class BagEnsemble(DMCClassifier):
     classifier = None
-    estimators = 10
-    max_features = .5
-    max_samples = .5
+    estimators = 20
+    max_features = .9
+    max_samples = .9
 
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
@@ -82,9 +81,9 @@ class BayesBag(BagEnsemble):
 
 class SVMBag(DMCClassifier):
     classifier = None
-    estimators = 10
-    max_features = .5
-    max_samples = .5
+    estimators = 20
+    max_features = .9
+    max_samples = .9
 
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
@@ -97,18 +96,16 @@ class SVMBag(DMCClassifier):
         X = X.toarray()
         return self.clf.predict(X)
 
-
 class AdaBoostEnsemble(DMCClassifier):
     classifier = None
-    estimators = 50
-    learning_rate = .5
+    estimators = 200
+    learning_rate = 1
     algorithm = 'SAMME.R'
 
     def __init__(self, X: np.array, Y: np.array):
         super().__init__(X, Y)
         self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
                                       learning_rate=self.learning_rate, algorithm=self.algorithm)
-
 
 class AdaTree(AdaBoostEnsemble):
     classifier = DecisionTreeClassifier()
@@ -124,3 +121,19 @@ class AdaSVM(AdaBoostEnsemble):
     def __init__(self, X: np.array, Y: np.array):
         self.classifier = SVC(decision_function_shape='ovo')
         super().__init__(X, Y)
+
+
+class GradBoost(DMCClassifier):
+    estimators = 2000
+    learning_rate=1
+    max_depth = 1
+    max_features = 0.97
+
+    def __init__(self, X: np.array, Y: np.array):
+        super().__init__(X, Y)
+        self.clf = GradientBoostingClassifier(n_estimators=self.estimators,
+                                      learning_rate=self.learning_rate, max_depth=self.max_depth, max_features=self.max_features)
+
+    def predict(self, X: csr_matrix) -> np.array:
+        return self.clf.predict(X.toarray())
+
