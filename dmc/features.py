@@ -5,13 +5,12 @@ import holidays
 """Dependent features"""
 
 
-def add_dependent_features(df: pd.DataFrame) -> pd.DataFrame:
-    customer_return_probability(df)  # customerReturnProb
-    color_return_probability(df)  # colorReturnProb
-    size_return_probability(df)  # sizeReturnProb
-    product_group_return_probability(df)  # productGroupReturnProb
-    binned_color_code(df)  # binnedColorCode
-    return df
+def add_dependent_features(train: pd.DataFrame, test: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
+    train, test = customer_return_probability(train, test)  # customerReturnProb
+    train, test = size_return_probability(train, test)  # sizeReturnProb
+    train, test = product_group_return_probability(train, test)  # productGroupReturnProb
+    train, test = binned_color_code_return_probability(train, test)  # binnedColorCode
+    return train, test
 
 
 def group_return_probability(group: pd.Series) -> np.float64:
@@ -36,61 +35,62 @@ def group_return_probability(group: pd.Series) -> np.float64:
     return group.astype(bool).sum() / len(group)
 
 
-def customer_return_probability(df: pd.DataFrame):
+def apply_return_probs(train: pd.DataFrame, test: pd.DataFrame,
+                       source_column: str, target_column: str) -> (pd.DataFrame, pd.DataFrame):
+    """Group the values in the 'source column' of the training data and for each value calculate
+    the return probability (cf. group_return_probability). Then add the 'target column' to training
+    and test set containing the probability for each row. Unknown values, i.e. values present in
+    test but not in training data, will have NaN as return probability.
+
+    Parameters
+    ----------
+    train : pd.DataFrame
+        Training data containing 'source column' and 'returnQuantity'
+    test : pd.DataFrame
+        Test data containing 'source column'
+    source_column : str
+        The column to group by. E.g., given 'customerID' the return probabilities for each customer
+        will be calculated
+    target_column : str
+        The name of the column to put in the probabilities.
+
+    Returns
+    -------
+    pd.DataFrame
+        Training data with target column added
+    pd.DataFrame
+        Test data with target column added
+    """
+    ret_probs = train.groupby(source_column)['returnQuantity'].apply(group_return_probability)
+    train[target_column] = ret_probs.reindex(train[source_column]).values
+    test[target_column] = ret_probs.reindex(test[source_column]).values
+    return train, test
+
+
+def customer_return_probability(train, test) -> (pd.DataFrame, pd.DataFrame):
     """Calculate likelihood of a specific customer to return a product.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-    Table containing 'customerID' and 'returnQuantity' columns
-
     """
-    customer_ret_probs = df.groupby('customerID')['returnQuantity'].apply(group_return_probability)
-    df['customerReturnProb'] = customer_ret_probs.reindex(df['customerID']).values
+    return apply_return_probs(train, test, 'customerID', 'customerReturnProb')
 
 
-def color_return_probability(df: pd.DataFrame):
-    """Calculate likelihood of an order with a specific color to result in a return.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-    Table containing 'customerID' and 'returnQuantity' columns
-
-    """
-    color_ret_probs = df.groupby('colorCode')['returnQuantity'].apply(group_return_probability)
-    df['colorReturnProb'] = color_ret_probs.reindex(df['colorCode']).values
-
-
-def size_return_probability(df: pd.DataFrame):
+def size_return_probability(train, test) -> (pd.DataFrame, pd.DataFrame):
     """Calculate likelihood of an order with a specific sizeCode to result in a return.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-    Table containing 'customerID' and 'returnQuantity' columns
-
     """
-    color_ret_probs = df.groupby('sizeCode')['returnQuantity'].apply(group_return_probability)
-    df['sizeReturnProb'] = color_ret_probs.reindex(df['sizeCode']).values
+    return apply_return_probs(train, test, 'sizeCode', 'sizeReturnProb')
 
 
-def product_group_return_probability(df: pd.DataFrame):
+def product_group_return_probability(train, test) -> (pd.DataFrame, pd.DataFrame):
     """Calculate likelihood of an order with a specific productGroup to result in a return.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-    Table containing 'customerID' and 'returnQuantity' columns
-
     """
-    color_ret_probs = df.groupby('productGroup')['returnQuantity'].apply(group_return_probability)
-    df['productGroupReturnProb'] = color_ret_probs.reindex(df['productGroup']).values
+    return apply_return_probs(train, test, 'productGroup', 'productGroupReturnProb')
 
 
-def binned_color_code(df: pd.DataFrame, deviations=1.0):
-    """Bin colorCode column.
+def binned_color_code_return_probability(train, test, deviations=1.0) -> (
+        pd.DataFrame, pd.DataFrame):
+    """Bin the colorCode column in training and test using return probabilities of training data.
 
+    Notes
+    -----
     This is to deal with unknown colorCodes (CC's) in the target set by binning the CC range.
     The binning considers outlier CC's by keeping them separate, 1-sized bins.
     Outliers are CC's whose return probability is over one standard deviation away from the mean.
@@ -100,26 +100,31 @@ def binned_color_code(df: pd.DataFrame, deviations=1.0):
 
     Parameters
     ----------
-    df : pd.DataFrame
-        Table containing 'colorCodes' column to be binned
+    train : pd.DataFrame
+    test : pd.DataFrame
+        See apply_return_probs
     deviations : float
         Number of standard deviations a return probability has to differ from the mean to be
         considered an outlier.
-
     """
     color_code_min = 0
     color_code_max = 9999
 
-    cc_ret_probs = df.groupby('colorCode')['returnQuantity'].apply(group_return_probability)
+    # Calculate return probability for each colorCode
+    color_code_ret_probs = (train
+                            .groupby('colorCode')['returnQuantity']
+                            .apply(group_return_probability))
 
-    mean = cc_ret_probs.mean()
-    diff = cc_ret_probs.std() * deviations
+    # Reindex those values to resemble to distribution in the training set
+    row_ret_probs = color_code_ret_probs.reindex(train['colorCode'])
 
-    mean_distances = cc_ret_probs.sub(mean).abs()
-
-    bins = [color_code_min]
+    # Calculate mean and minimum mean distance
+    mean = row_ret_probs.mean()
+    diff = row_ret_probs.std() * deviations
+    mean_distances = color_code_ret_probs.sub(mean).abs()
 
     # iterate over colorCodes and respective mean distances to collect bins
+    bins = [color_code_min]
     for cc, mean_distance in mean_distances.items():
         if mean_distance > diff:
             # add the colorCode as 1-sized bin (current cc and cc + 1)
@@ -129,8 +134,15 @@ def binned_color_code(df: pd.DataFrame, deviations=1.0):
             bins.append(cc + 1)
     bins.append(color_code_max + 1)
 
-    cut = list(pd.cut(df.colorCode, bins, right=False))
-    df['binnedColorCode'] = pd.Series(cut, index=df.index)
+    # Assign bins to each row in test and training data
+    train['binnedColorCode'] = pd.cut(train['colorCode'], bins, right=False, labels=False)
+    test['binnedColorCode'] = pd.cut(test['colorCode'], bins, right=False, labels=False)
+
+    train, test = apply_return_probs(train, test, 'binnedColorCode', 'colorReturnProb')
+    # Test set colorCodes that are bigger than any colorCode in the training set fall into a
+    # category that has no returnProbability. Impute that bin with the mean retProb.
+    test['colorReturnProb'] = test['colorReturnProb'].fillna(mean)
+    return train, test
 
 
 """Independent features"""
