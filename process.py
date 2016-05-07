@@ -4,7 +4,7 @@ import numpy as np
 
 import dmc
 from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork
-from dmc.classifiers import TreeBag, BayesBag, SVMBag
+from dmc.classifiers import TreeBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM, GradBoost
 
 
@@ -12,15 +12,15 @@ processed_file = '/data/processed.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
 basic = [DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork]
-bag = [TreeBag, BayesBag, SVMBag]
-ada = [GradBoost, AdaTree, AdaBayes, AdaSVM]
+bag = [TreeBag, SVMBag]
+ada = [AdaTree, AdaBayes, AdaSVM, GradBoost]
 
 
 def shuffle(df: pd.DataFrame) -> pd.DataFrame:
     return df.reindex(np.random.permutation(df.index))
 
 
-def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
+def eval_classifiers(df: pd.DataFrame, tr_size, te_size, tune_parameters):
     df = shuffle(df)
     df = df[:te_size + tr_size]
     X, Y = dmc.transformation.transform(df, scaler=dmc.transformation.scale_features,
@@ -28,7 +28,7 @@ def eval_classifiers(df: pd.DataFrame, tr_size, te_size):
     train = X[:tr_size], Y[:tr_size]
     test = X[tr_size:tr_size + te_size], Y[tr_size:tr_size + te_size]
     for classifier in (basic + bag + ada):
-        clf = classifier(train[0], train[1])
+        clf = classifier(train[0], train[1], tune_parameters)
         res = clf(test[0])
         precision = dmc.evaluation.precision(res, test[1])
         print(precision, ' using ', str(classifier))
@@ -55,5 +55,5 @@ def processed_data() -> pd.DataFrame:
 
 if __name__ == '__main__':
     data = processed_data()
-    eval_classifiers(data, 5000, 5000)
+    eval_classifiers(data, 5000, 5000, tune_parameters=False)
     eval_features(data, 5000)

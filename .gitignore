@@ -67,4 +67,7 @@ target/
 #Virtualenv
 venv
 
+#PyCharm
+.idea
+
 /data/processed_train.csv
