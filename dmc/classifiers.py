@@ -197,10 +197,16 @@ class TensorFlowNeuralNetwork(DMCClassifier):
     learning_rate = 0.05
     hidden_units = [100, 100, 100]
 
-    def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
+    def __init__(self, X: np.array, Y: np.array, tune_parameters: bool):
         # TensorFlow/Skflow doesn't support sparse matrices
         X = X.todense()
         super().__init__(X, Y, tune_parameters)
+        if tune_parameters:
+            self.param_dist_random = {'learning_rate':
+                                      ''
+            }
+            self.param_dist_grid = {}
+
         n_classes = len(np.unique(Y))
         self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units,
                                                   n_classes=n_classes, steps=self.steps,
