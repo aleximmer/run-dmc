@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 
 import dmc
-from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, TheanoNeuralNetwork, TensorFlowNeuralNetwork
+from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, TheanoNeuralNetwork, \
+    TensorFlowNeuralNetwork
 from dmc.classifiers import TreeBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
 

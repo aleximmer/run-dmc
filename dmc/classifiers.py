@@ -198,9 +198,11 @@ class TensorFlowNeuralNetwork(DMCClassifier):
     hidden_units = [100, 100, 100]
 
     def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
-        super().__init__(X.todense(), Y, tune_parameters)  # TensorFlow/Skflow doesn't support sparse matrices
-        n_input, n_classes = self.X.shape[1], len(np.unique(Y))
-        self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units, n_classes=n_classes, steps=self.steps,
+        # TensorFlow/Skflow doesn't support sparse matrices
+        super().__init__(X.todense(), Y, tune_parameters)
+        n_classes = len(np.unique(Y))
+        self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units,
+                                                  n_classes=n_classes, steps=self.steps,
                                                   learning_rate=self.learning_rate, verbose=0)
 
     def predict(self, X: csr_matrix):
