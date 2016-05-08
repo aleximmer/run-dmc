@@ -1,4 +1,5 @@
-from dmc.loading import data_train, data_full
+import dmc.loading
+import dmc.features
 import dmc.preprocessing
 import dmc.classifiers
 import dmc.evaluation
