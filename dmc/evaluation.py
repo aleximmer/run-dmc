@@ -124,4 +124,4 @@ def evaluate_without_one_feature(X_train, Y_train, X_class, Y_class, feature_hea
         prec = precision(Y_class, clf(X_cl))
         global_baseline += baseline
         global_precision += prec
-    return global_baseline/n, global_precision/n
+    return "Improvement without " + ignore_feature + ": " + str(global_precision/n - global_baseline/n)
