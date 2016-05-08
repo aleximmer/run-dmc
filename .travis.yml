@@ -3,6 +3,10 @@ language: python
 python:
   - "3.5"
 
+sudo: required
+
+dist: trusty
+
 install:
   - ./.condaInstall.sh
   - export PATH="$HOME/miniconda/bin:$PATH"
