@@ -50,7 +50,7 @@ class SVM(DMCClassifier):
         self.clf = SVC(decision_function_shape='ovo')
 
 
-class NeuralNetwork(DMCClassifier):
+class TheanoNeuralNetwork(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array):
         super().__init__(X, Y)
         input_layer, output_layer = self.X.shape[1], len(np.unique(Y))
@@ -127,11 +127,18 @@ class AdaSVM(AdaBoostEnsemble):
         self.classifier = SVC(decision_function_shape='ovo')
         super().__init__(X, Y)
 
+
 class TensorFlowNeuralNetwork(DMCClassifier):
-    steps = 1000
+    steps = 2000
     learning_rate = 0.05
-    hidden_units = [10, 20, 10]
+    hidden_units = [100, 100, 100]
+
     def __init__(self, X: np.array, Y: np.array):
-        super().__init__(X, Y)
+        super().__init__(X.todense(), Y)  # TensorFlow/Skflow doesn't support sparse matrices
         n_input, n_classes = self.X.shape[1], len(np.unique(Y))
-        self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units, n_classes=self.n_classes, steps=self.steps, learning_rate=self.learning_rate)
+        self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units, n_classes=n_classes, steps=self.steps,
+                                                  learning_rate=self.learning_rate, verbose=0)
+
+    def predict(self, X: csr_matrix):
+        X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
+        return self.clf.predict(X)
