@@ -106,3 +106,19 @@ def evaluate_features_leaving_one_out(X_train, Y_train, X_class, Y_class,
         res.decrement[ft] = baseline - prec
         res.precision[ft] = prec
     return res
+
+
+def evaluate_without_one_feature(X_train, Y_train, X_class, Y_class, feature_header, ignore_features, classifier) -> pd.DataFrame:
+    clf = classifier(X_train, Y_train)
+    baseline = precision(Y_class, clf(X_class))
+    ftsl, seen = list(feature_header), set()
+    res = pd.DataFrame(index=set(ftsl + ['all']),
+                       data={'decrement': 0., 'precision': 0.})
+    res.precision['all'] = baseline
+
+    X_tr, X_cl = X_train.T[feature_header != ignore_features].T, X_class.T[feature_header != ignore_features].T
+    clf = classifier(X_tr, Y_train)
+    prec = precision(Y_class, clf(X_cl))
+    res.decrement[ignore_features] = baseline - prec
+    res.precision[ignore_features] = prec
+    return baseline, prec
