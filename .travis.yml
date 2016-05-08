@@ -3,6 +3,10 @@ language: python
 python:
   - "3.5"
 
+sudo: required
+
+dist: trusty
+
 install:
   - ./.condaInstall.sh
   - export PATH="$HOME/miniconda/bin:$PATH"
@@ -16,6 +20,7 @@ install:
   - pip install theanets
   - pip install nose_parameterized
   - pip install holidays
+  - conda install --yes -c jjhelmus tensorflow=0.8.0rc0
 
 before_script:
   - flake8 .
