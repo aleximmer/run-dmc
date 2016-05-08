@@ -24,7 +24,8 @@ class SelectedFeatures:
         't_unisizeOffset', 't_voucher_is10PercentVoucher', 't_voucher_is15PercentVoucher',
         't_voucher_isGiftVoucher', 't_voucher_isValueVoucher', 't_voucher_usedCount_A',
         't_wsv', 'voucherAmount', 'voucherID', 'products3DayNeighborhood',
-        'products7DayNeighborhood', 'products14DayNeighborhood', 'products30DayNeighborhood'
+        'products7DayNeighborhood', 'products14DayNeighborhood', 'products30DayNeighborhood',
+        'previousOrder'
     ]
 
     _blacklist = [
@@ -234,6 +235,7 @@ def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:
     df['products7DayNeighborhood'] = orders_in_neighborhood(df, 7)
     df['products14DayNeighborhood'] = orders_in_neighborhood(df, 14)
     df['products30DayNeighborhood'] = orders_in_neighborhood(df, 30)
+    df['previousOrders'] = previous_orders(df)
     return df
 
 
@@ -300,5 +302,18 @@ def orders_in_neighborhood(df: pd.DataFrame, days=7) -> pd.DataFrame:
                                   .apply(summed_quantity_in_neighborhood))
 
     return (aggregated_orders_per_date
+            .reindex(df[['customerID', 'orderDate']])
+            .values)
+
+
+def previous_orders(df: pd.DataFrame) -> pd.DataFrame:
+    """For each record assign the number of today's and previous transactions with the respective
+    customer.
+    """
+    return (df
+            .groupby(['customerID', 'orderDate'])['orderID']
+            .count()
+            .groupby(level=0)
+            .cumsum()
             .reindex(df[['customerID', 'orderDate']])
             .values)

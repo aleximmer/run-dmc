@@ -15,6 +15,16 @@ class FeaturingTest(unittest.TestCase):
         self.data = preprocessing.cleanse(raw_data)
         self.train, self.test = preprocessing.split_train_test(self.data, train_ids, test_ids)
 
+    """History-dependent features (applied after split)"""
+
+    def test_add_dependent_features(self):
+        train, test = features.add_dependent_features(self.train, self.test)
+        expected_features = ['customerReturnProb', 'productGroupReturnProb', 'colorReturnProb',
+                             'sizeReturnProb']
+        for feature in expected_features:
+            self.assertIn(feature, train.columns)
+            self.assertIn(feature, test.columns)
+
     def test_group_return_probability(self):
         group = pd.Series([0, 100])
         self.assertEqual(features.group_return_probability(group), 0.5)
@@ -49,13 +59,7 @@ class FeaturingTest(unittest.TestCase):
         self.assertAlmostEqual(test1['colorReturnProb'][1], 0.6)
         self.assertListEqual(test1['binnedColorCode'].tolist(), [0, 2])
 
-    def test_add_dependent_features(self):
-        train, test = features.add_dependent_features(self.train, self.test)
-        expected_features = ['customerReturnProb', 'productGroupReturnProb', 'colorReturnProb',
-                             'sizeReturnProb']
-        for feature in expected_features:
-            self.assertIn(feature, train.columns)
-            self.assertIn(feature, test.columns)
+    """History-independent features (applied before split)"""
 
     def test_add_independent_features(self):
         df = features.add_independent_features(self.data)
@@ -67,4 +71,15 @@ class FeaturingTest(unittest.TestCase):
 
     def test_orders_in_neighborhood(self):
         expected = [2, 2, 1, 1, 4, 4, 4, 4, 3, 3, 3, 1]
-        self.assertListEqual(expected, list(features.orders_in_neighborhood(self.data, days=1)))
+        actual = features.orders_in_neighborhood(self.data, days=1)
+        self.assertListEqual(expected, list(actual))
+
+    def test_same_article_surplus(self):
+        expected = [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0]
+        actual = features.same_article_surplus(self.data)
+        self.assertListEqual(expected, list(actual))
+
+    def test_previous_orders(self):
+        expected = [1, 2, 2, 1, 4, 4, 4, 4, 3, 3, 3, 1]
+        actual = features.previous_orders(self.data)
+        self.assertListEqual(expected, list(actual))
