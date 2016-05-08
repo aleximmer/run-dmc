@@ -202,9 +202,7 @@ class TensorFlowNeuralNetwork(DMCClassifier):
         X = X.todense()
         super().__init__(X, Y, tune_parameters)
         if tune_parameters:
-            self.param_dist_random = {'learning_rate':
-                                      ''
-            }
+            self.param_dist_random = {}
             self.param_dist_grid = {}
 
         n_classes = len(np.unique(Y))
