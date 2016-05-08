@@ -3,8 +3,9 @@ import argparse
 import pandas as pd
 
 import dmc
-from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork
-from dmc.classifiers import TreeBag, BayesBag, SVMBag
+from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, TheanoNeuralNetwork, \
+    TensorFlowNeuralNetwork
+from dmc.classifiers import TreeBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
 from dmc.ensemble import Ensemble
 
@@ -12,18 +13,18 @@ from dmc.ensemble import Ensemble
 processed_file = '/data/processed.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
-basic = [DecisionTree, Forest, NaiveBayes, SVM, NeuralNetwork]
-bag = [TreeBag, BayesBag, SVMBag]
+basic = [DecisionTree, Forest, NaiveBayes, SVM, TheanoNeuralNetwork, TensorFlowNeuralNetwork]
+bag = [TreeBag, SVMBag]
 ada = [AdaTree, AdaBayes, AdaSVM]
 
 
-def eval_classifiers(df: pd.DataFrame, split: int):
+def eval_classifiers(df: pd.DataFrame, split: int, tune_parameters: bool):
     X, Y = dmc.transformation.transform(df, scaler=dmc.transformation.scale_features,
                                         binary_target=True)
     train = X[:split], Y[:split]
     test = X[split:], Y[split:]
     for classifier in (basic + bag + ada):
-        clf = classifier(train[0], train[1])
+        clf = classifier(train[0], train[1], tune_parameters)
         res = clf(test[0])
         precision = dmc.evaluation.precision(res, test[1])
         print(precision, ' using ', str(classifier))
@@ -71,5 +72,5 @@ if __name__ == '__main__':
     split_point = len(train)
 
     eval_ensemble(train, test)
-    eval_classifiers(data, split_point)
+    eval_classifiers(data, split_point, tune_parameters=False)
     eval_features(data[:split_point])
