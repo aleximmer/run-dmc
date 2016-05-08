@@ -195,22 +195,23 @@ class AdaSVM(AdaBoostEnsemble):
 class TensorFlowNeuralNetwork(DMCClassifier):
     steps = 2000
     learning_rate = 0.05
-    hidden_units = [100, 100, 100]
+    hidden_units = [100, 100]
     n_classes = None
     optimizer = 'Adagrad'
 
     def __init__(self, X: np.array, Y: np.array, tune_parameters: bool):
-        # TensorFlow/Skflow doesn't support sparse matrices
         super().__init__(X, Y, tune_parameters)
-        self.X = X.todense()
+        self.X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
 
         self.n_classes = len(np.unique(Y))
 
         if tune_parameters:
-            self.param_dist_random = {'learning_rate':random.random(100),
-                                      'optimizer': ['SGD', 'Adam', 'Adagrad']}
+            self.param_dist_random = {'learning_rate': random.random(100),
+                                      'optimizer': ['SGD', 'Adam', 'Adagrad'],
+                                      'hidden_units': [sp_randint(50, 500), sp_randint(50, 500)]}
             self.param_dist_grid = {'learning_rate': [0.1, 0.5, 1.0, 5.0, 10.0, 100.0],
-                                    'optimizer': ['SGD', 'Adam', 'Adagrad']}
+                                    'optimizer': ['SGD', 'Adam', 'Adagrad'],
+                                    'hidden_units': [[100, 100, 100], [50, 50, 50], [200, 200, 200]]}
 
         self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units,
                                                   n_classes=self.n_classes, steps=self.steps,
@@ -219,5 +220,3 @@ class TensorFlowNeuralNetwork(DMCClassifier):
     def predict(self, X: csr_matrix):
         X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
         return self.clf.predict(X)
-
-
