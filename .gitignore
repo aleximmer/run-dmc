@@ -71,6 +71,3 @@ venv
 .idea
 
 /data/processed_train.csv
-
-# PyCharm
-.idea/
