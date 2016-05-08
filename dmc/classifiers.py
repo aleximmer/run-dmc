@@ -207,9 +207,9 @@ class TensorFlowNeuralNetwork(DMCClassifier):
         self.n_classes = len(np.unique(Y))
 
         if tune_parameters:
-            self.param_dist_random = {}
-            self.param_dist_grid = {'learning_rate': [0.1, 1.0, 10.0, 100.0],
-                                    'alpha': [2, 5, 10],
+            self.param_dist_random = {'learning_rate':random.random(100),
+                                      'optimizer': ['SGD', 'Adam', 'Adagrad']}
+            self.param_dist_grid = {'learning_rate': [0.1, 0.5, 1.0, 5.0, 10.0, 100.0],
                                     'optimizer': ['SGD', 'Adam', 'Adagrad']}
 
         self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units,
