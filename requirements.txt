@@ -17,4 +17,3 @@ jupyter-client
 jupyter-core
 notebook
 nose_parameterized
-https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.8.0-cp27-none-linux_x86_64.whl
