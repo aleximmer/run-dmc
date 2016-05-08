@@ -1,16 +1,18 @@
 import unittest
 import pandas as pd
 import numpy as np
-import dmc
+
+from dmc.preprocessing import cleanse, feature
+from dmc.transformation import transform
 
 
 class TransformationTest(unittest.TestCase):
     def setUp(self):
         raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
         raw_data = raw_data.head(50)
-        clean_data = dmc.cleansing.cleanse(raw_data)
-        featured_data = dmc.preprocessing.featuring(clean_data)
-        self.X, self.Y = dmc.transformation.transform(featured_data)
+        clean_data = cleanse(raw_data)
+        featured_data = feature(clean_data)
+        self.X, self.Y = transform(featured_data)
         self.X = self.X.toarray()
 
     def test_product_group_encoding(self):

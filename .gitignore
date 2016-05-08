@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+.idea/
+data/*.csv
+
 # C extensions
 *.so
 
@@ -63,6 +66,9 @@ target/
 
 #Virtualenv
 venv
+
+#PyCharm
+.idea
 
 /data/processed_train.csv
 
