@@ -4,7 +4,6 @@ import holidays
 
 
 class SelectedFeatures:
-
     _whitelist = [
         'articleID', 'colorCode', 'customerID', 'deviceID', 'orderDate', 'orderID',
         'paymentMethod', 'price', 'productGroup', 'quantity', 'returnQuantity', 'rrp',
@@ -24,7 +23,8 @@ class SelectedFeatures:
         't_singleItemPrice_diff_rrp', 't_sizeCodeNumerized', 't_ssv', 't_unisize',
         't_unisizeOffset', 't_voucher_is10PercentVoucher', 't_voucher_is15PercentVoucher',
         't_voucher_isGiftVoucher', 't_voucher_isValueVoucher', 't_voucher_usedCount_A',
-        't_wsv', 'voucherAmount', 'voucherID'
+        't_wsv', 'voucherAmount', 'voucherID', 'products3DayNeighborhood',
+        'products7DayNeighborhood', 'products14DayNeighborhood', 'products30DayNeighborhood'
     ]
 
     _blacklist = [
@@ -230,6 +230,10 @@ def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:
     # df['voucherFirstUsedDate'] = pd.to_datetime(df.t_voucher_firstUsedDate_A).apply(total_day)
     # df['voucherLastUsedDate'] = pd.to_datetime(df.t_voucher_lastUsedDate_A).apply(total_day)
     df['customerAvgUnisize'] = df.t_customer_avgUnisize.astype(np.int)
+    df['products3DayNeighborhood'] = orders_in_neighborhood(df, 3)
+    df['products7DayNeighborhood'] = orders_in_neighborhood(df, 7)
+    df['products14DayNeighborhood'] = orders_in_neighborhood(df, 14)
+    df['products30DayNeighborhood'] = orders_in_neighborhood(df, 30)
     return df
 
 
@@ -279,3 +283,22 @@ def date_to_season(date):
 
 def total_day(date):
     return date.dayofyear if date.year == 2014 else date.dayofyear + 365
+
+
+def orders_in_neighborhood(df: pd.DataFrame, days=7) -> pd.DataFrame:
+    """For each record assign the number of products bought in an n day neighborhood.
+    """
+    orders_per_date = df.groupby(['customerID', 'orderDate'])['quantity'].sum()
+    offset = pd.DateOffset(days=days)
+
+    def summed_quantity_in_neighborhood(group):
+        customer, date = group.name
+        return orders_per_date[customer][date - offset:date + offset].sum()
+
+    aggregated_orders_per_date = (df
+                                  .groupby(['customerID', 'orderDate'])['quantity']
+                                  .apply(summed_quantity_in_neighborhood))
+
+    return (aggregated_orders_per_date
+            .reindex(df[['customerID', 'orderDate']])
+            .values)

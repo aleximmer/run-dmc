@@ -51,15 +51,20 @@ class FeaturingTest(unittest.TestCase):
 
     def test_add_dependent_features(self):
         train, test = features.add_dependent_features(self.train, self.test)
-        self.assertIn('customerReturnProb', test.columns)
-        self.assertIn('productGroupReturnProb', test.columns)
-        self.assertIn('colorReturnProb', test.columns)
-        self.assertIn('sizeReturnProb', test.columns)
-        self.assertIn('customerReturnProb', train.columns)
-        self.assertIn('productGroupReturnProb', train.columns)
-        self.assertIn('colorReturnProb', train.columns)
-        self.assertIn('sizeReturnProb', train.columns)
+        expected_features = ['customerReturnProb', 'productGroupReturnProb', 'colorReturnProb',
+                             'sizeReturnProb']
+        for feature in expected_features:
+            self.assertIn(feature, train.columns)
+            self.assertIn(feature, test.columns)
 
     def test_add_independent_features(self):
-        data = features.add_independent_features(self.data)
-        self.assertIn('totalOrderShare', data.columns)
+        df = features.add_independent_features(self.data)
+        expected_features = ['totalOrderShare', 'products3DayNeighborhood',
+                             'products7DayNeighborhood', 'products14DayNeighborhood',
+                             'products30DayNeighborhood']
+        for feature in expected_features:
+            self.assertIn(feature, df.columns)
+
+    def test_orders_in_neighborhood(self):
+        expected = [2, 2, 1, 1, 4, 4, 4, 4, 3, 3, 3, 1]
+        self.assertListEqual(expected, list(features.orders_in_neighborhood(self.data, days=1)))
