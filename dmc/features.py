@@ -48,7 +48,7 @@ class SelectedFeatures:
         return cls.get_whitelist().union(cls.get_blacklist())
 
 
-"""Dependent features"""
+"""History-dependent features (applied after split)"""
 
 
 def add_dependent_features(train: pd.DataFrame, test: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
@@ -191,7 +191,7 @@ def binned_color_code_return_probability(train, test, deviations=1.0) -> (
     return train, test
 
 
-"""Independent features"""
+"""History-independent features (applied before split)"""
 
 
 def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:

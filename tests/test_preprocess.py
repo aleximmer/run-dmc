@@ -10,7 +10,6 @@ from dmc.features import add_independent_features, add_dependent_features
 class PreprocessingTest(unittest.TestCase):
     def setUp(self):
         self.raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
-        self.raw_data = self.raw_data.head(50)
         train_ids = ['a1000001', 'a1000002', 'a1000003']
         test_ids = ['a1000007', 'a1000008']
 
@@ -36,22 +35,6 @@ class PreprocessingTest(unittest.TestCase):
         self.assertTrue(df.articleID.dtype == np.int)
         self.assertTrue(df.customerID.dtype == np.int)
         self.assertTrue(df.voucherID.dtype == np.float)
-
-    def test_preprocess(self):
-        train, test = split_train_test(**self.data)
-        train, test = add_dependent_features(train, test)
-        self.assertIn('customerReturnProb', test.columns)
-        self.assertIn('productGroupReturnProb', test.columns)
-        self.assertIn('colorReturnProb', test.columns)
-        self.assertIn('sizeReturnProb', test.columns)
-        self.assertIn('customerReturnProb', train.columns)
-        self.assertIn('productGroupReturnProb', train.columns)
-        self.assertIn('colorReturnProb', train.columns)
-        self.assertIn('sizeReturnProb', train.columns)
-
-    def test_independent_features(self):
-        data = add_independent_features(self.data['data'])
-        self.assertIn('totalOrderShare', data.columns)
 
     def test_split(self):
         train, test = split_train_test(**self.data)
