@@ -12,7 +12,7 @@ from operator import itemgetter
 from scipy.stats import randint as sp_randint
 from numpy import random
 
-from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
+from sklearn.grid_search import RandomizedSearchCV
 
 
 class DMCClassifier:
@@ -29,7 +29,6 @@ class DMCClassifier:
             print(self.clf.get_params().keys())
             try:
                 self.estimate_parameters_with_random_search()
-                self.estimate_parameters_with_grid_search_cv()
             except Exception as e:
                 print(e)
                 pass
@@ -53,12 +52,6 @@ class DMCClassifier:
         print("Random Search")
         self.report(random_search.grid_scores_)
 
-    def estimate_parameters_with_grid_search_cv(self):
-        grid_search = GridSearchCV(self.clf, param_grid=self.param_dist_grid)
-        grid_search.fit(self.X, self.Y)
-        print("Grid Search")
-        self.report(grid_search.grid_scores_)
-
     def fit(self):
         self.clf.fit(self.X, self.Y)
         return self
@@ -75,9 +68,6 @@ class DecisionTree(DMCClassifier):
                                       'min_samples_leaf': sp_randint(1, 150),
                                       'max_features': sp_randint(1, self.X.shape[1] - 1),
                                       'criterion': ['entropy', 'gini']}
-            self.param_dist_grid = {'min_samples_leaf': [100, 125, 150],
-                                    'max_features': [10, 20, 30, 50, self.X.shape[1] - 1],
-                                    'criterion': ['entropy', 'gini']}
         self.clf = DecisionTreeClassifier()
 
 
@@ -89,10 +79,6 @@ class Forest(DMCClassifier):
                                       'min_samples_leaf': sp_randint(1, 100),
                                       'max_features': sp_randint(1, self.X.shape[1] - 1),
                                       'criterion': ['entropy', 'gini']}
-            self.param_dist_grid = {'max_depth': [25, 35, 40, 50],
-                                    'min_samples_leaf': [40, 45, 50, 60, 70],
-                                    'max_features': [10, 20, self.X.shape[1] - 1],
-                                    'criterion': ['entropy', 'gini']}
         self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8)
 
 
@@ -129,8 +115,6 @@ class BagEnsemble(DMCClassifier):
         if tune_parameters:
             self.param_dist_random = {'max_features': sp_randint(1, self.X.shape[1]),
                                       'n_estimators': sp_randint(1, 100)}
-            self.param_dist_grid = {'max_features': [10, 20, 30],
-                                    'n_estimators': [30, 50, 70]}
         self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
                                      max_samples=self.max_samples, max_features=self.max_features)
 
@@ -169,9 +153,6 @@ class AdaBoostEnsemble(DMCClassifier):
             self.param_dist_random = {'n_estimators': sp_randint(1, 1000),
                                       'algorithm': ['SAMME', 'SAMME.R'],
                                       'learning_rate': random.random(100)}
-            self.param_dist_grid = {'n_estimators': [100, 200, 400, 900, 1000],
-                                    'algorithm': ['SAMME', 'SAMME.R'],
-                                    'learning_rate': [.1, .2, 0.25, .3, .4, .5, .6]}
         self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
                                       learning_rate=self.learning_rate, algorithm=self.algorithm)
 
@@ -207,11 +188,8 @@ class TensorFlowNeuralNetwork(DMCClassifier):
 
         if tune_parameters:
             self.param_dist_random = {'learning_rate': random.random(100),
-                                      'optimizer': ['SGD', 'Adam', 'Adagrad'],
+                                      'optimizer': ['Adam'],
                                       'hidden_units': [sp_randint(50, 500), sp_randint(50, 500)]}
-            self.param_dist_grid = {'learning_rate': [0.1, 0.5, 1.0, 5.0, 10.0, 100.0],
-                                    'optimizer': ['SGD', 'Adam', 'Adagrad'],
-                                    'hidden_units': [[100, 100], [50, 50], [200, 200]]}
 
         self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units,
                                                   n_classes=self.n_classes, steps=self.steps,
