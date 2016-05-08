@@ -199,7 +199,8 @@ class TensorFlowNeuralNetwork(DMCClassifier):
 
     def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
         # TensorFlow/Skflow doesn't support sparse matrices
-        super().__init__(X.todense(), Y, tune_parameters)
+        X = X.todense()
+        super().__init__(X, Y, tune_parameters)
         n_classes = len(np.unique(Y))
         self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units,
                                                   n_classes=n_classes, steps=self.steps,
