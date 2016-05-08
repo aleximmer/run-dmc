@@ -119,9 +119,9 @@ def evaluate_without_one_feature(X_train, Y_train, X_class, Y_class, feature_hea
                            data={'decrement': 0., 'precision': 0.})
         res.precision['all'] = baseline
 
-        X_tr, X_cl = X_train.T[feature_header != ignore_features].T, X_class.T[feature_header != ignore_features].T
+        X_tr, X_cl = X_train.T[list(set(feature_header) - set(ignore_features))].T, X_class.T[list(set(feature_header) - set(ignore_features))].T
         clf = classifier(X_tr, Y_train)
         prec = precision(Y_class, clf(X_cl))
         global_baseline += baseline
-        global_precision += precision
+        global_precision += prec
     return global_baseline/n, global_precision/n
