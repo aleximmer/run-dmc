@@ -53,7 +53,6 @@ class Ensemble:
         transformation_tuples = zip(self.splits.items(), scalers, ignore_features, binary)
         trans = self.pool.map(self._transform_split, transformation_tuples)
         for res in trans:
-            print(res[0], res[0] in self.splits.keys())
             self.splits[res[0]] = res[1]
 
     @staticmethod
