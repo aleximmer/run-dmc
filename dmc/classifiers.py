@@ -177,6 +177,8 @@ class AdaSVM(AdaBoostEnsemble):
     def __init__(self, X: np.array, Y: np.array, tune_parameters: bool):
         self.classifier = SVC(decision_function_shape='ovo')
         super().__init__(X, Y, tune_parameters)
+
+
 class GradBoost(DMCClassifier):
     estimators = 2000
     learning_rate = 1
