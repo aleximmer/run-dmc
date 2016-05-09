@@ -6,7 +6,10 @@ from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, \
     BaggingClassifier, AdaBoostClassifier, GradientBoostingClassifier
-import tensorflow.contrib.learn as skflow
+try:
+    import tensorflow.contrib.learn as skflow
+except ImportError:
+    print('Tensorflow not installed')
 
 from operator import itemgetter
 from scipy.stats import randint as sp_randint
