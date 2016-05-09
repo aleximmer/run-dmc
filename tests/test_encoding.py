@@ -8,7 +8,7 @@ from dmc.transformation import encode_features
 
 class EncodingTest(unittest.TestCase):
     def setUp(self):
-        raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
+        raw_data = pd.read_csv('tests/test_data_old.txt', delimiter=';')
         raw_data = raw_data.head(50)
         clean_data = cleanse(raw_data)
         self.data = clean_data
