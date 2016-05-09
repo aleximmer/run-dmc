@@ -80,7 +80,6 @@ class Ensemble:
             all_cost += cost
             if verbose:
                 print(name, ': size ', size, ' prec ', prec)
-                print(importances)
                 print('--------------------------------------')
 
         print('Overall :', all_prec, all_cost)
