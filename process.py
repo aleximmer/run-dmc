@@ -14,7 +14,7 @@ processed_file = '/data/processed.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
 basic = [DecisionTree, Forest, NaiveBayes, SVM, TheanoNeuralNetwork, TensorFlowNeuralNetwork]
-bag = [TreeBag, SVMBag]
+bag = [TreeBag, SVMBag, GradBoost]
 ada = [AdaTree, AdaBayes, AdaSVM]
 
 
