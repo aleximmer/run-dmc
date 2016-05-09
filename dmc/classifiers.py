@@ -6,7 +6,7 @@ from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, \
     BaggingClassifier, AdaBoostClassifier
-import tensorflow.contrib.learn as skflow
+#import tensorflow.contrib.learn as skflow
 
 from operator import itemgetter
 from scipy.stats import randint as sp_randint
