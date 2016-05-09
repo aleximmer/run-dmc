@@ -43,21 +43,22 @@ class Ensemble:
         self.train = train
         self.test = test
         self.splits = split(train, test)
-        self.pool = Pool(processes=cpu_count())
+        self.pool = Pool(processes=3)
 
     def transform(self, binary_target=True, scalers=None, ignore_features=None):
         scalers = [normalize_features] * len(self.splits) if scalers is None else scalers
-        ignore_features = ignore_features if ignore_features else []
+        ignore_features = ignore_features if ignore_features else [None] * len(self.splits)
+        binary = [binary_target] * len(self.splits)
 
-        def to_split_dict(key, value):
-            self.splits[key] = value
-
-        transformation_tuples = zip(self.splits.items(), scalers, ignore_features)
-        self.pool.apply_async(self._transform_split, transformation_tuples, callback=to_split_dict)
-        print(self.splits)
+        transformation_tuples = zip(self.splits.items(), scalers, ignore_features, binary)
+        trans = self.pool.map(self._transform_split, transformation_tuples)
+        for res in trans:
+            print(res[0], res[0] in self.splits.keys())
+            self.splits[res[0]] = res[1]
 
     @staticmethod
-    def _transform_split(item, scaler, rm_features, binary_target):
+    def _transform_split(args):
+        item, scaler, rm_features, binary_target = args
         offset = len(item[1][0])
         data = pd.concat([item[1][0], item[1][1]])
         if rm_features:
@@ -67,31 +68,32 @@ class Ensemble:
             'train': (X[:offset], Y[:offset]),
             'test': (X[offset:], Y[offset:])}
 
-    def classify(self, classifiers=None):
-        results = []
+    def classify(self, classifiers=None, hyper_param=False, verbose=True):
         classifiers = [DecisionTree] * len(self.splits) if classifiers is None else classifiers
-        split_apply = zip(self.splits.items(), classifiers)
-        results = []
+        split_apply = zip(self.splits.items(), classifiers, [hyper_param] * len(self.splits))
 
-        def log(size, prec, cost, name, importances):
-            print(name, ': size ', size, ' prec ', prec)
-            print(importances)
-            print('--------------------------------------')
-            results.append(size, prec, cost)
-
-        self.pool.map_async(self._classify_split, split_apply, callback=log)
+        results = self.pool.map(self._classify_split, split_apply)
 
         all_prec, all_cost, full_size = 0, 0, len(self.test)
-        for size, prec, cost in results:
+        for size, prec, cost, name, importances in results:
             all_prec += size / full_size * prec
             all_cost += cost
+            if verbose:
+                print(name, ': size ', size, ' prec ', prec)
+                print(importances)
+                print('--------------------------------------')
+
         print('Overall :', all_prec, all_cost)
 
     @staticmethod
-    def _classify_split(split, classifier):
-        clf = classifier(*split[1]['train'])
+    def _classify_split(args):
+        split, classifier, hyper_param = args
+        clf = classifier(*split[1]['train'], tune_parameters=hyper_param)
         pred = clf(split[1]['test'][0])
         prec = precision(pred, split[1]['test'][1])
         cost = dmc_cost(pred, split[1]['test'][1])
-        importances = clf.feature_importances_ if clf is DecisionTree else None
+        try:
+            importances = clf.clf.feature_importances_
+        except:
+            importances = None
         return len(split[1]['test'][1]), prec, cost, split[0], importances
