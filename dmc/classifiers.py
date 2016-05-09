@@ -5,7 +5,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, \
-    BaggingClassifier, AdaBoostClassifier
+    BaggingClassifier, AdaBoostClassifier, GradientBoostingClassifier
 
 from operator import itemgetter
 from scipy.stats import randint as sp_randint
@@ -170,9 +170,12 @@ class AdaBoostEnsemble(DMCClassifier):
                                       'learning_rate': random.random(100)}
             self.param_dist_grid = {'n_estimators': [100, 200, 400, 900, 1000],
                                     'algorithm': ['SAMME', 'SAMME.R'],
-                                    'learning_rate': [.1, .2, 0.25, .3, .4, .5, .6]}
-        self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
-                                      learning_rate=self.learning_rate, algorithm=self.algorithm)
+                                    'learning_rate': [.1, .2, 0.25, .3,
+                                                      .4, .5, .6]}
+        self.clf = AdaBoostClassifier(self.classifier,
+                                      n_estimators=self.estimators,
+                                      learning_rate=self.learning_rate,
+                                      algorithm=self.algorithm)
 
 
 class AdaTree(AdaBoostEnsemble):
@@ -197,10 +200,12 @@ class GradBoost(DMCClassifier):
     max_depth = 1
     max_features = 0.97
 
-    def __init__(self, X: np.array, Y: np.array):
+    def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
         super().__init__(X, Y)
         self.clf = GradientBoostingClassifier(n_estimators=self.estimators,
-                                      learning_rate=self.learning_rate, max_depth=self.max_depth, max_features=self.max_features)
+                                              learning_rate=self.learning_rate,
+                                              max_depth=self.max_depth,
+                                              max_features=self.max_features)
 
     def predict(self, X: csr_matrix) -> np.array:
         return self.clf.predict(X.toarray())
