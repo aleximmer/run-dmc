@@ -240,7 +240,6 @@ def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:
     df['voucherSavings'] = voucher_saving(df)
     # df['voucherFirstUsedDate'] = pd.to_datetime(df.t_voucher_firstUsedDate_A).apply(total_day)
     # df['voucherLastUsedDate'] = pd.to_datetime(df.t_voucher_lastUsedDate_A).apply(total_day)
-    # df['customerAvgUnisize'] = df.t_customer_avgUnisize.astype(np.int)
     df['products3DayNeighborhood'] = orders_in_neighborhood(df, 3)
     df['products7DayNeighborhood'] = orders_in_neighborhood(df, 7)
     df['products14DayNeighborhood'] = orders_in_neighborhood(df, 14)
