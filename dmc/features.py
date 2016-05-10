@@ -4,32 +4,36 @@ import holidays
 
 
 class SelectedFeatures:
+
     _whitelist = [
-        'articleID', 'colorCode', 'customerID', 'deviceID', 'orderDate', 'orderID',
-        'paymentMethod', 'price', 'productGroup', 'quantity', 'returnQuantity', 'rrp',
-        'sizeCode', 't_article_availableColors', 't_article_availableSizes',
-        't_article_boughtCountGlobal', 't_article_priceChangeSTD_A',
-        't_customer_boughtArticleCount', 't_customer_orderCount', 't_customer_voucherCount',
-        't_isChristmas', 't_isGift', 't_isOneSize_A', 't_isTypeBelt', 't_isTypePants',
-        't_isTypeTop', 't_isWeekend_A', 't_order_article_sameArticlesCount',
-        't_order_article_sameArticlesCount_DiffColor',
+        # article
+        'articleID', 'colorCode', 'price', 'productGroup', 'quantity', 'rrp', 'sizeCode',
+        't_article_availableColors', 't_article_availableSizes', 't_article_boughtCountGlobal',
+        't_article_priceChangeSTD_A', 't_isTypeBelt', 't_isTypePants', 't_isTypeTop',
+        't_singleItemPrice', 't_singleItemPrice_diff_rrp', 't_sizeCodeNumerized', 't_unisize',
+        't_unisizeOffset', 't_article_isTypeTop', 't_article_isTypeBelt', 't_article_isTypePants',
+        # order
+        'deviceID', 'orderDate', 'orderID', 'paymentMethod', 't_isGift', 't_isOneSize_A',
+        't_order_article_sameArticlesCount', 't_order_article_sameArticlesCount_DiffColor',
         't_order_article_sameArticlesCount_DiffSize', 't_order_boughtArticleCount',
         't_order_boughtArticleTypeCount', 't_order_cheapestPrice', 't_order_duplicateCount',
         't_order_hasVoucher_A', 't_order_meanPrice', 't_order_mostExpensivePrice',
-        't_order_priceStd_A', 't_order_sameArticlesCount',
-        't_order_sameArticlesCount_DiffColor', 't_order_sameArticlesCount_DiffSize',
-        't_order_totalPrice', 't_order_totalPrice_diff_voucherAmount',
-        't_paymentWithFee_A', 't_reducedPaymentMethod_A', 't_singleItemPrice',
-        't_singleItemPrice_diff_rrp', 't_sizeCodeNumerized', 't_ssv', 't_unisize',
-        't_unisizeOffset', 't_voucher_is10PercentVoucher', 't_voucher_is15PercentVoucher',
-        't_voucher_isGiftVoucher', 't_voucher_isValueVoucher', 't_voucher_usedCount_A',
-        't_wsv', 'voucherAmount', 'voucherID', 'products3DayNeighborhood',
-        'products7DayNeighborhood', 'products14DayNeighborhood', 'products30DayNeighborhood',
-        'previousOrder', 't_payAfterwards', 't_voucher_isPercentualVoucher', 't_article_isTypeTop',
-        't_isLimitedOffer', 't_article_isTypeBelt', 't_article_isTypePants', 't_isOneSize_AB',
-        't_payInAdvance', 't_hasUnisize', 't_history_buyArticleAgain', 't_order_daysToNextOrder',
-        't_order_daysToPreviousOrder', 't_customer_boughtDifferentArticleCount',
-        't_customer_avgUnisize'
+        't_order_priceStd_A', 't_order_sameArticlesCount', 't_order_sameArticlesCount_DiffColor',
+        't_order_sameArticlesCount_DiffSize', 't_order_totalPrice',
+        't_order_totalPrice_diff_voucherAmount', 't_paymentWithFee_A', 't_reducedPaymentMethod_A',
+        'products3DayNeighborhood', 'products7DayNeighborhood', 'products14DayNeighborhood',
+        'products30DayNeighborhood', 'previousOrder', 't_payAfterwards', 't_payInAdvance',
+        # customer
+        'customerID', 't_customer_boughtArticleCount', 't_customer_orderCount',
+        't_customer_voucherCount', 't_isOneSize_AB', 't_hasUnisize', 't_history_buyArticleAgain',
+        't_order_daysToNextOrder', 't_order_daysToPreviousOrder',
+        't_customer_boughtDifferentArticleCount', 't_customer_avgUnisize',
+        # voucher
+        't_voucher_is10PercentVoucher', 't_voucher_is15PercentVoucher', 't_voucher_isGiftVoucher',
+        't_voucher_isValueVoucher', 't_voucher_usedCount_A', 'voucherAmount', 'voucherID',
+        't_voucher_isPercentualVoucher', 't_isLimitedOffer',
+        # other
+        'returnQuantity', 't_isChristmas', 't_isWeekend_A', 't_ssv', 't_wsv'
     ]
 
     _blacklist = [
