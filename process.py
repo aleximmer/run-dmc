@@ -1,32 +1,29 @@
 import os.path
 import argparse
-import numpy as np
 import pandas as pd
 
 import dmc
 from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, TheanoNeuralNetwork, \
     TensorFlowNeuralNetwork
 from dmc.classifiers import TreeBag, SVMBag
-from dmc.classifiers import AdaTree, AdaBayes, AdaSVM
+from dmc.classifiers import AdaTree, AdaBayes, AdaSVM, GradBoost
 from dmc.ensemble import Ensemble
 
-
-evaluation_sets = ['rawSummerSale', 'rawFirstOrders', 'rawLargestProductGroup', 'rawLinearSample',
-                   'rawNovDec', 'rawPopularCustomers']
 
 processed_file = '/data/processed.csv'
 
 # Remove classifiers which you don't want to run and add new ones here
-basic = [DecisionTree, Forest, NaiveBayes, SVM, TheanoNeuralNetwork]
+basic = [DecisionTree, Forest, NaiveBayes, SVM, TheanoNeuralNetwork, TensorFlowNeuralNetwork]
+bag = [TreeBag, SVMBag, GradBoost]
+ada = [AdaTree, AdaBayes, AdaSVM]
 
 
 def eval_classifiers(df: pd.DataFrame, split: int, tune_parameters: bool):
     X, Y = dmc.transformation.transform(df, scaler=dmc.transformation.scale_features,
                                         binary_target=True)
-    train = X[:min(split, 10000)], Y[:min(split, 10000)]
+    train = X[:split], Y[:split]
     test = X[split:], Y[split:]
-    print('start training end evaluation')
-    for classifier in (basic):
+    for classifier in (basic + bag + ada):
         clf = classifier(train[0], train[1], tune_parameters)
         res = clf(test[0])
         precision = dmc.evaluation.precision(res, test[1])
@@ -65,11 +62,15 @@ def split_data_by_id(df: pd.DataFrame, id_file_prefix: str) -> (pd.DataFrame, in
 
 
 if __name__ == '__main__':
-    data = processed_data()
-    print('loaded data')
-    for eval_set in evaluation_sets:
-        train, test = split_data_by_id(data, eval_set)
-        split_point = len(train)
-        print('split data')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('id_prefix', help='prefix of the id file to use')
+    args = parser.parse_args()
+    id_prefix = args.id_prefix
 
-        eval_classifiers(data, split_point, tune_parameters=False)
+    data = processed_data()
+    train, test = split_data_by_id(data, id_prefix)
+    split_point = len(train)
+
+    eval_ensemble(train, test)
+    eval_classifiers(data, split_point, tune_parameters=False)
+    eval_features(data[:split_point])
