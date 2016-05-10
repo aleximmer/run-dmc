@@ -2,7 +2,8 @@ import pandas as pd
 
 
 def data_train():
-    return pd.read_csv('data/datacup-out-manual.csv', sep=',', na_values='\\N')
+    return pd.read_csv('data/datacup-out-training_test_nosplit_transformed.csv',
+                       sep=',', na_values='\\N')
 
 
 def data_full():

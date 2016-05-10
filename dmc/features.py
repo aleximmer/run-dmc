@@ -8,7 +8,7 @@ class SelectedFeatures:
         'articleID', 'colorCode', 'customerID', 'deviceID', 'orderDate', 'orderID',
         'paymentMethod', 'price', 'productGroup', 'quantity', 'returnQuantity', 'rrp',
         'sizeCode', 't_article_availableColors', 't_article_availableSizes',
-        't_article_boughtCountGlobal', 't_article_priceChangeSTD_A', 't_customer_avgUnisize',
+        't_article_boughtCountGlobal', 't_article_priceChangeSTD_A',
         't_customer_boughtArticleCount', 't_customer_orderCount', 't_customer_voucherCount',
         't_isChristmas', 't_isGift', 't_isOneSize_A', 't_isTypeBelt', 't_isTypePants',
         't_isTypeTop', 't_isWeekend_A', 't_order_article_sameArticlesCount',
@@ -25,7 +25,11 @@ class SelectedFeatures:
         't_voucher_isGiftVoucher', 't_voucher_isValueVoucher', 't_voucher_usedCount_A',
         't_wsv', 'voucherAmount', 'voucherID', 'products3DayNeighborhood',
         'products7DayNeighborhood', 'products14DayNeighborhood', 'products30DayNeighborhood',
-        'previousOrder'
+        'previousOrder', 't_payAfterwards', 't_voucher_isPercentualVoucher', 't_article_isTypeTop',
+        't_isLimitedOffer', 't_article_isTypeBelt', 't_article_isTypePants', 't_isOneSize_AB',
+        't_payInAdvance', 't_hasUnisize', 't_history_buyArticleAgain', 't_order_daysToNextOrder',
+        't_order_daysToPreviousOrder', 't_customer_boughtDifferentArticleCount',
+        't_customer_avgUnisize'
     ]
 
     _blacklist = [
@@ -33,7 +37,8 @@ class SelectedFeatures:
         't_dayOfMonth', 't_isWeekend', 't_singleItemPrice_per_rrp', 't_atLeastOneReturned',
         't_voucher_usedOnlyOnce_A', 't_voucher_stdDevDiscount_A', 't_voucher_OrderCount_A',
         't_voucher_hasAbsoluteDiscountValue_A', 't_voucher_firstUsedDate_A',
-        't_voucher_lastUsedDate_A'
+        't_voucher_lastUsedDate_A', 't_seasonSummer', 't_seasonAutumn', 't_seasonWinter',
+        't_seasonSpring', 't_hasRRP'
     ]
 
     @classmethod
@@ -230,7 +235,7 @@ def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:
     df['voucherSavings'] = voucher_saving(df)
     # df['voucherFirstUsedDate'] = pd.to_datetime(df.t_voucher_firstUsedDate_A).apply(total_day)
     # df['voucherLastUsedDate'] = pd.to_datetime(df.t_voucher_lastUsedDate_A).apply(total_day)
-    df['customerAvgUnisize'] = df.t_customer_avgUnisize.astype(np.int)
+    # df['customerAvgUnisize'] = df.t_customer_avgUnisize.astype(np.int)
     df['products3DayNeighborhood'] = orders_in_neighborhood(df, 3)
     df['products7DayNeighborhood'] = orders_in_neighborhood(df, 7)
     df['products14DayNeighborhood'] = orders_in_neighborhood(df, 14)

@@ -9,6 +9,11 @@ def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
     Dropped rows would be """
     df = df[df.quantity > 0]
     df = df[df.quantity >= df.returnQuantity]
+    df['t_order_daysToNextOrder'].fillna(0, inplace=True)
+    df['t_order_daysToPreviousOrder'].fillna(0, inplace=True)
+    df['t_customer_avgUnisize'].fillna(df['t_customer_avgUnisize'].mean(), inplace=True)
+    df['t_unisize'].fillna(df['t_unisize'].mean(), inplace=True)
+    df['t_unisizeOffset'].fillna(0, inplace=True)
     # nans in these rows definitely have returnQuantity == 0
     df = df.dropna(subset=['voucherID', 'rrp', 'productGroup'])
     return df
