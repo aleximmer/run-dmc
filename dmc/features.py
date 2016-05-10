@@ -9,11 +9,11 @@ class SelectedFeatures:
         # article
         'articleID', 'colorCode', 'price', 'productGroup', 'quantity', 'rrp', 'sizeCode',
         't_article_availableColors', 't_article_availableSizes', 't_article_boughtCountGlobal',
-        't_article_priceChangeSTD_A', 't_isTypeBelt', 't_isTypePants', 't_isTypeTop',
-        't_singleItemPrice', 't_singleItemPrice_diff_rrp', 't_sizeCodeNumerized', 't_unisize',
+        't_article_priceChangeSTD_A',
+        't_singleItemPrice_diff_rrp', 't_sizeCodeNumerized', 't_unisize',
         't_unisizeOffset', 't_article_isTypeTop', 't_article_isTypeBelt', 't_article_isTypePants',
         # order
-        'deviceID', 'orderDate', 'orderID', 'paymentMethod', 't_isGift', 't_isOneSize_A',
+        'deviceID', 'orderDate', 'orderID', 'paymentMethod',
         't_order_article_sameArticlesCount', 't_order_article_sameArticlesCount_DiffColor',
         't_order_article_sameArticlesCount_DiffSize', 't_order_boughtArticleCount',
         't_order_boughtArticleTypeCount', 't_order_cheapestPrice', 't_order_duplicateCount',
@@ -31,9 +31,9 @@ class SelectedFeatures:
         # voucher
         't_voucher_is10PercentVoucher', 't_voucher_is15PercentVoucher', 't_voucher_isGiftVoucher',
         't_voucher_isValueVoucher', 't_voucher_usedCount_A', 'voucherAmount', 'voucherID',
-        't_voucher_isPercentualVoucher', 't_isLimitedOffer',
+        't_voucher_isPercentualVoucher', 't_isLimitedOffer', 't_isGift',
         # other
-        'returnQuantity', 't_isChristmas', 't_isWeekend_A', 't_ssv', 't_wsv'
+        'returnQuantity', 't_ssv', 't_wsv'
     ]
 
     _blacklist = [
@@ -42,7 +42,8 @@ class SelectedFeatures:
         't_voucher_usedOnlyOnce_A', 't_voucher_stdDevDiscount_A', 't_voucher_OrderCount_A',
         't_voucher_hasAbsoluteDiscountValue_A', 't_voucher_firstUsedDate_A',
         't_voucher_lastUsedDate_A', 't_seasonSummer', 't_seasonAutumn', 't_seasonWinter',
-        't_seasonSpring', 't_hasRRP'
+        't_seasonSpring', 't_hasRRP', 't_singleItemPrice', 't_isOneSize_A', 't_isChristmas',
+        't_isWeekend_A'
     ]
 
     @classmethod
