@@ -9,13 +9,25 @@ def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
     Dropped rows would be """
     df = df[df.quantity > 0]
     df = df[df.quantity >= df.returnQuantity]
-    df['t_order_daysToNextOrder'].fillna(0, inplace=True)
-    df['t_order_daysToPreviousOrder'].fillna(0, inplace=True)
-    df['t_customer_avgUnisize'].fillna(df['t_customer_avgUnisize'].mean(), inplace=True)
-    df['t_unisize'].fillna(df['t_unisize'].mean(), inplace=True)
-    df['t_unisizeOffset'].fillna(0, inplace=True)
     # nans in these rows definitely have returnQuantity == 0
     df = df.dropna(subset=['voucherID', 'rrp', 'productGroup'])
+    df = fill_nas(df)
+    return df
+
+
+def fill_nas(df: pd.DataFrame) -> pd.DataFrame:
+    if 't_order_daysToNextOrder' in df.columns.tolist():
+        df['t_order_daysToNextOrder'].fillna(0, inplace=True)
+    if 't_order_daysToPreviousOrder' in df.columns.tolist():
+        df['t_order_daysToPreviousOrder'].fillna(0, inplace=True)
+    if 't_customer_avgUnisize' in df.columns.tolist():
+        df['t_customer_avgUnisize'].fillna(df['t_customer_avgUnisize'].mean(),
+                                           inplace=True)
+        df['t_customer_avgUnisize'] = df['t_customer_avgUnisize'].astype(np.int)
+    if 't_unisize' in df.columns.tolist():
+        df['t_unisize'].fillna(df['t_unisize'].mean(), inplace=True)
+    if 't_unisizeOffset' in df.columns.tolist():
+        df['t_unisizeOffset'].fillna(0, inplace=True)
     return df
 
 
