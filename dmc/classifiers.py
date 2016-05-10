@@ -5,7 +5,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, \
-    BaggingClassifier, AdaBoostClassifier
+    BaggingClassifier, AdaBoostClassifier, GradientBoostingClassifier
 try:
     import tensorflow.contrib.learn as skflow
 except ImportError:
@@ -156,8 +156,14 @@ class AdaBoostEnsemble(DMCClassifier):
             self.param_dist_random = {'n_estimators': sp_randint(1, 1000),
                                       'algorithm': ['SAMME', 'SAMME.R'],
                                       'learning_rate': random.random(100)}
-        self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
-                                      learning_rate=self.learning_rate, algorithm=self.algorithm)
+            self.param_dist_grid = {'n_estimators': [100, 200, 400, 900, 1000],
+                                    'algorithm': ['SAMME', 'SAMME.R'],
+                                    'learning_rate': [.1, .2, 0.25, .3,
+                                                      .4, .5, .6]}
+        self.clf = AdaBoostClassifier(self.classifier,
+                                      n_estimators=self.estimators,
+                                      learning_rate=self.learning_rate,
+                                      algorithm=self.algorithm)
 
 
 class AdaTree(AdaBoostEnsemble):
@@ -174,6 +180,23 @@ class AdaSVM(AdaBoostEnsemble):
     def __init__(self, X: np.array, Y: np.array, tune_parameters: bool):
         self.classifier = SVC(decision_function_shape='ovo')
         super().__init__(X, Y, tune_parameters)
+
+
+class GradBoost(DMCClassifier):
+    estimators = 2000
+    learning_rate = 1
+    max_depth = 1
+    max_features = 0.97
+
+    def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
+        super().__init__(X, Y)
+        self.clf = GradientBoostingClassifier(n_estimators=self.estimators,
+                                              learning_rate=self.learning_rate,
+                                              max_depth=self.max_depth,
+                                              max_features=self.max_features)
+
+    def predict(self, X: csr_matrix) -> np.array:
+        return self.clf.predict(X.toarray())
 
 
 class TensorFlowNeuralNetwork(DMCClassifier):
