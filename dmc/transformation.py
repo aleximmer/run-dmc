@@ -3,11 +3,10 @@ from scipy.sparse import csr_matrix, hstack
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, MaxAbsScaler, OneHotEncoder, LabelEncoder
 
-
-encode_label = ['paymentMethod', 'sizeCode', 't_customer_preferredPayment', 'binnedColorCode']
+encode_label = ['paymentMethod', 'sizeCode', 't_customer_preferredPayment']
 encode_int = ['deviceID', 'productGroup', 'articleID', 'customerID', 'orderID',
               'voucherID', 'orderYear', 'orderMonth', 'orderDay', 'orderWeekDay',
-              'orderWeek', 'orderSeason', 'orderQuarter', 'customerAvgUnisize']
+              'orderWeek', 'orderSeason', 'orderQuarter', 'customerAvgUnisize', 'binnedColorCode']
 
 
 def encode_features(df: pd.DataFrame, ft: str) -> csr_matrix:
