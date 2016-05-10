@@ -219,7 +219,6 @@ def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         Feature-enriched table
     """
-    print("Adding features")
     df['productPrice'] = df.price / df.quantity
     df['totalSavings'] = df.rrp - df.productPrice
     df['relativeSavings'] = (1 - df.productPrice / df.rrp).fillna(1.)
