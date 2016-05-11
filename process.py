@@ -45,7 +45,7 @@ def processed_data() -> pd.DataFrame:
     """Create or read DataFrame with all features that are independent"""
     rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) + processed_file)
     if os.path.isfile(rel_file_path):
-        return pd.read_csv(rel_file_path)
+        return pd.DataFrame.from_csv(rel_file_path)
     df = dmc.loading.data_train()
     df = dmc.preprocessing.cleanse(df)
     df = dmc.features.add_independent_features(df)
