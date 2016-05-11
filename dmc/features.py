@@ -246,12 +246,13 @@ def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:
     df['products30DayNeighborhood'] = orders_in_neighborhood(df, 30)
     df['previousOrders'] = previous_orders(df)
     df['t_order_voucher_type'] = df.apply(get_voucher_type, axis=1)
-    df['t_posInOrder'] = df.groupby('orderID', as_index=False).apply(pos_in_grouping).reset_index(level=0, drop=True)
-    df['t_posInDay'] = df.groupby('orderDate', as_index=False).apply(pos_in_grouping).reset_index(level=0, drop=True)
+    df['t_posInOrder'] = df.groupby('orderID', as_index=False).apply(
+        pos_in_grouping).reset_index(level=0, drop=True)
+    df['t_posInDay'] = df.groupby('orderDate', as_index=False).apply(
+        pos_in_grouping).reset_index(level=0, drop=True)
     df['t_daysTillNextOrder'] = days_till_next_order(df.groupby('customerID', as_index=False))
 
     return df
-
 
 
 def same_article_surplus(df: pd.DataFrame) -> pd.DataFrame:
@@ -335,10 +336,11 @@ def previous_orders(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def pos_in_grouping(x):
-   if len(x) > 1:
-      return pd.Series(np.arange(len(x))/(len(x)-1), x.index)
-   else:
-      return pd.Series(np.array(0.0), x.index)
+    if len(x) > 1:
+        return pd.Series(np.arange(len(x)) / (len(x) - 1), x.index)
+    else:
+        return pd.Series(np.array(0.0), x.index)
+
 
 def days_till_next_order(x):
     days_diff = []
@@ -346,31 +348,33 @@ def days_till_next_order(x):
 
     for k, group in x:
 
-         order_group = group.groupby('orderID', as_index=False)
+        order_group = group.groupby('orderID', as_index=False)
 
-         keys = [key for key, g in order_group]
+        keys = [key for key, g in order_group]
 
-         for i,(key_order,orders) in zip(range(len(keys)), order_group):
+        for i, (key_order, orders) in zip(range(len(keys)), order_group):
 
-             if i+1 < len(keys):
-                diff =  order_group.get_group(keys[i+1])['orderTotalDay'].iloc[0] - orders['orderTotalDay'].iloc[0]
+            if i + 1 < len(keys):
+                diff = order_group.get_group(
+                    keys[i + 1])['orderTotalDay'].iloc[0] - orders['orderTotalDay'].iloc[0]
                 days_diff.extend(len(orders) * [diff])
-             else:
-                days_diff.extend([np.nan]*len(orders))
-             indexes.extend(orders.index)         
-    
+            else:
+                days_diff.extend([np.nan] * len(orders))
+            indexes.extend(orders.index)
+
     return pd.Series(days_diff, indexes)
 
+
 def get_voucher_type(row):
-  if row['t_order_totalPrice'] > 0:
-    deviation = round(row['voucherAmount']/row['t_order_totalPrice'] * 100)
-    if deviation == 15:
-      return "t_voucher_is15PercentVoucher"
-    elif deviation == 10:
-      return "t_voucher_is10PercentVoucher"
+    if row['t_order_totalPrice'] > 0:
+        deviation = round(row['voucherAmount'] / row['t_order_totalPrice'] * 100)
+        if deviation == 15:
+            return "t_voucher_is15PercentVoucher"
+        elif deviation == 10:
+            return "t_voucher_is10PercentVoucher"
+        else:
+            return np.nan
+    elif row['t_isGift']:
+        return "t_voucher_isGift"
     else:
-       return np.nan
-  elif row['t_isGift']:
-    return "t_voucher_isGift"
-  else:
-    return "t_voucher_isValueVoucher"
+        return "t_voucher_isValueVoucher"
