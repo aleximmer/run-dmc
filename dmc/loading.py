@@ -6,8 +6,16 @@ def data_train():
                        sep=',', na_values='\\N')
 
 
+def data_class():
+    return pd.read_csv('data/datacup-out-class_nosplit_transformed.csv',
+                       sep=',', na_values='\\N')
+
+
 def data_full():
-    return pd.read_csv('data/datacup-out-unified.csv', sep=',', na_values='\\N')
+    print('Load merged train and class data set.')
+    train_df = data_train()
+    class_df = data_class()
+    return pd.concat([train_df, class_df])
 
 
 def load_ids(id_file_prefix: str) -> (list, list):

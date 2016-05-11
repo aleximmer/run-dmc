@@ -41,12 +41,15 @@ def eval_features(df: pd.DataFrame):
     print(ft_importance.sort_values('tree', ascending=False))
 
 
-def processed_data() -> pd.DataFrame:
+def processed_data(load_full=False) -> pd.DataFrame:
     """Create or read DataFrame with all features that are independent"""
     rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) + processed_file)
     if os.path.isfile(rel_file_path):
         return pd.DataFrame.from_csv(rel_file_path)
-    df = dmc.loading.data_train()
+    if load_full:
+        df = dmc.loading.data_full()
+    else:
+        df = dmc.loading.data_train()
     df = dmc.preprocessing.cleanse(df)
     df = dmc.features.add_independent_features(df)
     print('Finished processing. Dumping results to {}.'.format(rel_file_path))
@@ -62,14 +65,18 @@ def split_data_by_id(df: pd.DataFrame, id_file_prefix: str) -> (pd.DataFrame, in
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('id_prefix', help='prefix of the id file to use')
+    parser.add_argument('-f', action='store_true', help='load the unified dataset (train + class)')
+    args = parser.parse_args()
+    id_prefix = args.id_prefix
+    load_full = args.f
 
-    id_prefix = 'rawSummerSale'
-
-    data = processed_data()
-    train, test = split_data_by_id(data, id_prefix)
-    split_point = len(train)
+    data = processed_data(load_full)
+    #train, test = split_data_by_id(data, id_prefix)
+    #split_point = len(train)
 
     #eval_ensemble(train, test)
-    print('start evaluation')
-    eval_classifiers(data, split_point, tune_parameters=False)
+    #print('start evaluation')
+    #eval_classifiers(data, split_point, tune_parameters=False)
     #eval_features(data[:split_point])
