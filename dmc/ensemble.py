@@ -1,6 +1,7 @@
 from multiprocessing import Pool, cpu_count
 import pandas as pd
 import numpy as np
+from scipy.sparse import csr_matrix
 
 from dmc.transformation import normalize_features
 from dmc.transformation import transform
@@ -63,6 +64,7 @@ class Ensemble:
         if rm_features:
             data = data.drop(rm_features, 1)
         X, Y = transform(data, binary_target=binary_target, scaler=scaler)
+        X = csr_matrix(X)
         return item[0], {
             'train': (X[:offset], Y[:offset]),
             'test': (X[offset:], Y[offset:])}
