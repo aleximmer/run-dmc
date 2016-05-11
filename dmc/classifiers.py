@@ -1,11 +1,14 @@
 import numpy as np
 from scipy.sparse import csr_matrix
+from scipy.stats import expon
 import theanets as tn
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
+from sklearn import grid_search
 from sklearn.ensemble import RandomForestClassifier, \
     BaggingClassifier, AdaBoostClassifier, GradientBoostingClassifier
+
 try:
     import tensorflow.contrib.learn as skflow
 except ImportError:
@@ -28,7 +31,7 @@ class DMCClassifier:
         self.tune_parameters = tune_parameters
 
     def __call__(self, X: csr_matrix) -> np.array:
-        if(self.tune_parameters):
+        if (self.tune_parameters):
             print(self.clf.get_params().keys())
             try:
                 self.estimate_parameters_with_random_search()
@@ -92,7 +95,11 @@ class NaiveBayes(DMCClassifier):
 class SVM(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters)
-        self.clf = SVC(decision_function_shape='ovo')
+        parameters = {'C': expon(scale=100), 'gamma': expon(scale=.1),
+                       'kernel': ['rbf', 'linear']}
+        svm = SVC(decision_function_shape='ovo')
+        self.clf = grid_search.RandomizedSearchCV(svm, param_distributions=parameters, n_iter=15)
+        # print(self.clf.get_params())
 
 
 class TheanoNeuralNetwork(DMCClassifier):
