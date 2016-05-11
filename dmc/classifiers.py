@@ -60,6 +60,7 @@ class DMCClassifier:
 
     def fit(self):
         self.clf.fit(self.X, self.Y)
+        self.report(self.clf.grid_scores_)
         return self
 
     def predict(self, X: csr_matrix) -> np.array:
@@ -98,7 +99,7 @@ class SVM(DMCClassifier):
         parameters = {'C': expon(scale=100), 'gamma': expon(scale=.1),
                        'kernel': ['rbf', 'linear']}
         svm = SVC(decision_function_shape='ovo')
-        self.clf = grid_search.RandomizedSearchCV(svm, param_distributions=parameters, n_iter=15)
+        self.clf = grid_search.RandomizedSearchCV(svm, param_distributions=parameters, n_iter=15, n_jobs=-1)
         # print(self.clf.get_params())
 
 
