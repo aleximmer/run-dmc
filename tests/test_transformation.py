@@ -2,16 +2,17 @@ import unittest
 import pandas as pd
 import numpy as np
 
-from dmc.preprocessing import cleanse, feature
+from dmc.preprocessing import cleanse
+from dmc.features import add_independent_features
 from dmc.transformation import transform
 
 
 class TransformationTest(unittest.TestCase):
     def setUp(self):
-        raw_data = pd.read_csv('tests/test_data.txt', delimiter=';')
+        raw_data = pd.read_csv('tests/test_data_old.txt', delimiter=';')
         raw_data = raw_data.head(50)
         clean_data = cleanse(raw_data)
-        featured_data = feature(clean_data)
+        featured_data = add_independent_features(clean_data)
         self.X, self.Y = transform(featured_data)
         self.X = self.X.toarray()
 

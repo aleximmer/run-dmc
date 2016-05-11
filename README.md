@@ -22,6 +22,7 @@ Optional
 - `source venv/bin/activate`
 
 Required
+- [Tensorflow Installation](https://www.tensorflow.org/versions/r0.8/get_started/os_setup.html#pip-installation) depending on OS
 - Install requirements (NumPy, pandas, SciPy, ...)
 - `pip3 install -r requirements.txt`
 

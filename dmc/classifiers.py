@@ -5,13 +5,17 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, \
-    BaggingClassifier, AdaBoostClassifier
+    BaggingClassifier, AdaBoostClassifier, GradientBoostingClassifier
+try:
+    import tensorflow.contrib.learn as skflow
+except ImportError:
+    print('Tensorflow not installed')
 
 from operator import itemgetter
 from scipy.stats import randint as sp_randint
 from numpy import random
 
-from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
+from sklearn.grid_search import RandomizedSearchCV
 
 
 class DMCClassifier:
@@ -28,7 +32,6 @@ class DMCClassifier:
             print(self.clf.get_params().keys())
             try:
                 self.estimate_parameters_with_random_search()
-                self.estimate_parameters_with_grid_search_cv()
             except Exception as e:
                 print(e)
                 pass
@@ -52,12 +55,6 @@ class DMCClassifier:
         print("Random Search")
         self.report(random_search.grid_scores_)
 
-    def estimate_parameters_with_grid_search_cv(self):
-        grid_search = GridSearchCV(self.clf, param_grid=self.param_dist_grid)
-        grid_search.fit(self.X, self.Y)
-        print("Grid Search")
-        self.report(grid_search.grid_scores_)
-
     def fit(self):
         self.clf.fit(self.X, self.Y)
         return self
@@ -74,9 +71,6 @@ class DecisionTree(DMCClassifier):
                                       'min_samples_leaf': sp_randint(1, 150),
                                       'max_features': sp_randint(1, self.X.shape[1] - 1),
                                       'criterion': ['entropy', 'gini']}
-            self.param_dist_grid = {'min_samples_leaf': [100, 125, 150],
-                                    'max_features': [10, 20, 30, 50, self.X.shape[1] - 1],
-                                    'criterion': ['entropy', 'gini']}
         self.clf = DecisionTreeClassifier()
 
 
@@ -88,10 +82,6 @@ class Forest(DMCClassifier):
                                       'min_samples_leaf': sp_randint(1, 100),
                                       'max_features': sp_randint(1, self.X.shape[1] - 1),
                                       'criterion': ['entropy', 'gini']}
-            self.param_dist_grid = {'max_depth': [25, 35, 40, 50],
-                                    'min_samples_leaf': [40, 45, 50, 60, 70],
-                                    'max_features': [10, 20, self.X.shape[1] - 1],
-                                    'criterion': ['entropy', 'gini']}
         self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8)
 
 
@@ -105,7 +95,7 @@ class SVM(DMCClassifier):
         self.clf = SVC(decision_function_shape='ovo')
 
 
-class NeuralNetwork(DMCClassifier):
+class TheanoNeuralNetwork(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         super().__init__(X, Y)
         input_layer, output_layer = self.X.shape[1], len(np.unique(Y))
@@ -128,8 +118,6 @@ class BagEnsemble(DMCClassifier):
         if tune_parameters:
             self.param_dist_random = {'max_features': sp_randint(1, self.X.shape[1]),
                                       'n_estimators': sp_randint(1, 100)}
-            self.param_dist_grid = {'max_features': [10, 20, 30],
-                                    'n_estimators': [30, 50, 70]}
         self.clf = BaggingClassifier(self.classifier, n_estimators=self.estimators, n_jobs=8,
                                      max_samples=self.max_samples, max_features=self.max_features)
 
@@ -170,9 +158,12 @@ class AdaBoostEnsemble(DMCClassifier):
                                       'learning_rate': random.random(100)}
             self.param_dist_grid = {'n_estimators': [100, 200, 400, 900, 1000],
                                     'algorithm': ['SAMME', 'SAMME.R'],
-                                    'learning_rate': [.1, .2, 0.25, .3, .4, .5, .6]}
-        self.clf = AdaBoostClassifier(self.classifier, n_estimators=self.estimators,
-                                      learning_rate=self.learning_rate, algorithm=self.algorithm)
+                                    'learning_rate': [.1, .2, 0.25, .3,
+                                                      .4, .5, .6]}
+        self.clf = AdaBoostClassifier(self.classifier,
+                                      n_estimators=self.estimators,
+                                      learning_rate=self.learning_rate,
+                                      algorithm=self.algorithm)
 
 
 class AdaTree(AdaBoostEnsemble):
@@ -189,3 +180,47 @@ class AdaSVM(AdaBoostEnsemble):
     def __init__(self, X: np.array, Y: np.array, tune_parameters: bool):
         self.classifier = SVC(decision_function_shape='ovo')
         super().__init__(X, Y, tune_parameters)
+
+
+class GradBoost(DMCClassifier):
+    estimators = 2000
+    learning_rate = 1
+    max_depth = 1
+    max_features = 0.97
+
+    def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
+        super().__init__(X, Y)
+        self.clf = GradientBoostingClassifier(n_estimators=self.estimators,
+                                              learning_rate=self.learning_rate,
+                                              max_depth=self.max_depth,
+                                              max_features=self.max_features)
+
+    def predict(self, X: csr_matrix) -> np.array:
+        return self.clf.predict(X.toarray())
+
+
+class TensorFlowNeuralNetwork(DMCClassifier):
+    steps = 2000
+    learning_rate = 0.05
+    hidden_units = [100, 100]
+    n_classes = None
+    optimizer = 'Adagrad'
+
+    def __init__(self, X: np.array, Y: np.array, tune_parameters: bool):
+        super().__init__(X, Y, tune_parameters)
+        self.X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
+
+        self.n_classes = len(np.unique(Y))
+
+        if tune_parameters:
+            self.param_dist_random = {'learning_rate': random.random(100),
+                                      'optimizer': ['Adam'],
+                                      'hidden_units': [sp_randint(50, 500), sp_randint(50, 500)]}
+
+        self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units,
+                                                  n_classes=self.n_classes, steps=self.steps,
+                                                  learning_rate=self.learning_rate, verbose=0)
+
+    def predict(self, X: csr_matrix):
+        X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
+        return self.clf.predict(X)
