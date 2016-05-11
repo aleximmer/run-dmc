@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 from dmc.transformation import normalize_features
-from dmc.transformation import transform
+from dmc.transformation import transform, transform_preserving_header
 from dmc.classifiers import DecisionTree
 from dmc.evaluation import precision, dmc_cost
 
@@ -62,8 +62,10 @@ class Ensemble:
         data = pd.concat([item[1][0], item[1][1]])
         if rm_features:
             data = data.drop(rm_features, 1)
-        X, Y = transform(data, binary_target=binary_target, scaler=scaler)
+        X, Y, fts = transform_preserving_header(data, binary_target=binary_target,
+                                           scaler=scaler)
         return item[0], {
+            'features': fts,
             'train': (X[:offset], Y[:offset]),
             'test': (X[offset:], Y[offset:])}
 

@@ -19,15 +19,15 @@ ada = [AdaTree, AdaBayes, AdaSVM]
 
 
 def eval_classifiers(df: pd.DataFrame, split: int, tune_parameters: bool):
-    X, Y = dmc.transformation.transform(df, scaler=dmc.transformation.scale_features,
-                                        binary_target=True)
-    train = X[:split], Y[:split]
-    test = X[split:], Y[split:]
-    for classifier in (basic + bag + ada):
-        clf = classifier(train[0], train[1], tune_parameters)
+    for scaler in [dmc.transformation.normalize_raw_features]:
+        X, Y = dmc.transformation.transform(df, scaler=scaler,
+                                            binary_target=True)
+        train = X[:split], Y[:split]
+        test = X[split:], Y[split:]
+        clf = NaiveBayes(train[0], train[1], tune_parameters)
         res = clf(test[0])
         precision = dmc.evaluation.precision(res, test[1])
-        print(precision, ' using ', str(classifier))
+        print(precision, ' using ', 'Naive Bayes and', scaler)
 
 
 def eval_ensemble(train: pd.DataFrame, test: pd.DataFrame):
@@ -62,15 +62,14 @@ def split_data_by_id(df: pd.DataFrame, id_file_prefix: str) -> (pd.DataFrame, in
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('id_prefix', help='prefix of the id file to use')
-    args = parser.parse_args()
-    id_prefix = args.id_prefix
+
+    id_prefix = 'rawSummerSale'
 
     data = processed_data()
     train, test = split_data_by_id(data, id_prefix)
     split_point = len(train)
 
-    eval_ensemble(train, test)
+    #eval_ensemble(train, test)
+    print('start evaluation')
     eval_classifiers(data, split_point, tune_parameters=False)
-    eval_features(data[:split_point])
+    #eval_features(data[:split_point])
