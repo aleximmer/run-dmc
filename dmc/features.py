@@ -245,6 +245,10 @@ def add_independent_features(df: pd.DataFrame) -> pd.DataFrame:
     df['products14DayNeighborhood'] = orders_in_neighborhood(df, 14)
     df['products30DayNeighborhood'] = orders_in_neighborhood(df, 30)
     df['previousOrders'] = previous_orders(df)
+    df['t_posInOrder'] = df.groupby('orderID', as_index=False).apply(
+        pos_in_grouping).reset_index(level=0, drop=True)
+    df['t_posInDay'] = df.groupby('orderDate', as_index=False).apply(
+        pos_in_grouping).reset_index(level=0, drop=True)
     return df
 
 
@@ -326,3 +330,10 @@ def previous_orders(df: pd.DataFrame) -> pd.DataFrame:
             .cumsum()
             .reindex(df[['customerID', 'orderDate']])
             .values)
+
+
+def pos_in_grouping(x):
+    if len(x) > 1:
+        return pd.Series(np.arange(len(x)) / (len(x) - 1), x.index)
+    else:
+        return pd.Series(np.array(0.0), x.index)
