@@ -1,4 +1,5 @@
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool
+from collections import OrderedDict
 import pandas as pd
 import numpy as np
 
@@ -25,7 +26,7 @@ def split(train: pd.DataFrame, test: pd.DataFrame) -> dict:
     known_mask = add_recognition_vector(train, test, potentially_unknown)
     test = pd.concat([test, known_mask], axis=1)
     splitters = list(known_mask.columns)
-    result = dict()
+    result = OrderedDict()
     for mask, group in test.groupby(splitters):
         specifier = '-'.join('known_' + col if known else 'unknown_' + col
                              for known, col in zip(mask, potentially_unknown))
@@ -43,7 +44,7 @@ class Ensemble:
         self.train = train
         self.test = test
         self.splits = split(train, test)
-        self.pool = Pool(processes=3)
+        self.pool = Pool(processes=1)
 
     def transform(self, binary_target=True, scalers=None, ignore_features=None):
         scalers = [normalize_features] * len(self.splits) if scalers is None else scalers
@@ -60,10 +61,8 @@ class Ensemble:
         item, scaler, rm_features, binary_target = args
         offset = len(item[1][0])
         data = pd.concat([item[1][0], item[1][1]])
-        if rm_features:
-            data = data.drop(rm_features, 1)
         X, Y, fts = transform_preserving_header(data, binary_target=binary_target,
-                                           scaler=scaler)
+                                                scaler=scaler, ignore_features=rm_features)
         return item[0], {
             'features': fts,
             'train': (X[:offset], Y[:offset]),
