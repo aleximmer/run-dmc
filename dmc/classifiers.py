@@ -28,7 +28,7 @@ class DMCClassifier:
         self.tune_parameters = tune_parameters
 
     def __call__(self, X: csr_matrix) -> np.array:
-        if(self.tune_parameters):
+        if self.tune_parameters:
             print(self.clf.get_params().keys())
             try:
                 self.estimate_parameters_with_random_search()
@@ -50,7 +50,7 @@ class DMCClassifier:
 
     def estimate_parameters_with_random_search(self):
         random_search = RandomizedSearchCV(self.clf, param_distributions=self.param_dist_random,
-                                           n_iter=10)
+                                           n_iter=30)
         random_search.fit(self.X, self.Y)
         print("Random Search")
         self.report(random_search.grid_scores_)
@@ -92,7 +92,11 @@ class NaiveBayes(DMCClassifier):
 class SVM(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters)
-        self.clf = SVC(decision_function_shape='ovo')
+        if tune_parameters:
+            self.param_dist_random = {'shrinking': [True, False],
+                                      'kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
+                                      'degree': sp_randint(2, 5)}
+        self.clf = SVC(kernel='rbf', shrinking=True)
 
 
 class TheanoNeuralNetwork(DMCClassifier):
