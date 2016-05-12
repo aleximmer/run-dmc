@@ -52,7 +52,10 @@ class Ensemble:
         binary = [binary_target] * len(self.splits)
 
         transformation_tuples = zip(self.splits.items(), scalers, ignore_features, binary)
-        trans = self.pool.map(self._transform_split, transformation_tuples)
+        # trans = self.pool.map(self._transform_split, transformation_tuples)
+        trans = []
+        for elem in transformation_tuples:
+            trans.append(self._transform_split(elem))
         for res in trans:
             self.splits[res[0]] = res[1]
 
