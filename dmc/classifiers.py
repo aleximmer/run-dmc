@@ -201,7 +201,7 @@ class GradBoost(DMCClassifier):
 
 class TensorFlowNeuralNetwork(DMCClassifier):
     steps = 2000
-    learning_rate = 0.05
+    learning_rate = 0.1
     hidden_units = [100, 100]
     n_classes = None
     optimizer = 'Adagrad'
@@ -213,9 +213,8 @@ class TensorFlowNeuralNetwork(DMCClassifier):
         self.n_classes = len(np.unique(Y))
 
         if tune_parameters:
-            self.param_dist_random = {'learning_rate': random.random(100),
-                                      'optimizer': ['Adam'],
-                                      'hidden_units': [sp_randint(50, 500), sp_randint(50, 500)]}
+            self.param_dist_random = {'optimizer': ['Adam'],
+                                      'hidden_units': [sp_randint(50, 100), sp_randint(50, 100)]}
 
         self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units,
                                                   n_classes=self.n_classes, steps=self.steps,

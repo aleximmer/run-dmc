@@ -2,7 +2,7 @@ from process import processed_data, split_data_by_id
 import pandas as pd
 import numpy as np
 from dmc.ensemble import Ensemble
-from dmc.classifiers import Forest, DecisionTree, NaiveBayes
+from dmc.classifiers import Forest, DecisionTree, NaiveBayes, TensorFlowNeuralNetwork
 
 
 evaluation_sets = ['rawMirrored', 'rawLinearSample']
@@ -21,7 +21,7 @@ for eval_set in evaluation_sets:
     print('train', len(train), 'test', len(test))
     ensemble = Ensemble(train, test)
     ensemble.transform(binary_target=True)
-    ensemble.classify(classifiers=[Forest] * len(ensemble.splits),
+    ensemble.classify(classifiers=[TensorFlowNeuralNetwork] * len(ensemble.splits),
                       verbose=True)
 
 for eval_set in evaluation_sets:
@@ -30,5 +30,5 @@ for eval_set in evaluation_sets:
     train, test = split_data_by_id(data, eval_set)
     ensemble = Ensemble(train, test)
     ensemble.transform(binary_target=True)
-    ensemble.classify(classifiers=[Forest] * len(ensemble.splits),
+    ensemble.classify(classifiers=[TensorFlowNeuralNetwork] * len(ensemble.splits),
                       hyper_param=True, verbose=False)
