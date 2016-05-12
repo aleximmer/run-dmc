@@ -3,6 +3,10 @@
 
 # In[1]:
 
+get_ipython().magic('load_ext autoreload')
+get_ipython().magic('autoreload 2')
+
+
 # In[2]:
 
 import dmc
@@ -27,11 +31,13 @@ len(train), len(test)
 
 # In[6]:
 
-ensemble = dmc.ensemble.Ensemble(train[:4000], test[:1000])
+ensemble = dmc.ensemble.Ensemble(train[:20000], test[:10000])
 
 
 # In[7]:
-# pr
+
+for k in ensemble.splits:
+    print(len(ensemble.splits[k][1]), k)
 
 
 # In[8]:
@@ -50,7 +56,6 @@ with open('/home/team_c/fabian_p/Sets_SVM_' +
             series_b = pd.Series(row[1:])
 feature_table = pd.DataFrame({'feature': series_a, "value": series_b})
 unimp_fts = feature_table[feature_table['value'] == '0.0']['feature'].tolist()
-# print(unimp_fts)
 
 
 # In[9]:
@@ -71,6 +76,7 @@ ensemble.transform(binary_target=True, scalers=[dmc.transformation.normalize_raw
 # In[11]:
 
 ensemble.classify([SVM] * len(ensemble.splits))
+# In[12]:
 
 
 

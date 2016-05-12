@@ -40,7 +40,6 @@ def eval_features(df: pd.DataFrame):
     ft_importance = dmc.evaluation.evaluate_features_by_ensemble(df)
     print(ft_importance.sort_values('tree', ascending=False))
 
-
 def processed_data() -> pd.DataFrame:
     """Create or read DataFrame with all features that are independent"""
     rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) + processed_file)
