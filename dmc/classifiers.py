@@ -82,7 +82,7 @@ class Forest(DMCClassifier):
                                       'min_samples_leaf': sp_randint(1, 100),
                                       'max_features': sp_randint(1, self.X.shape[1] - 1),
                                       'criterion': ['entropy', 'gini']}
-        self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8)
+        self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8, max_depth=60, min_samples_leaf=80)
 
 
 class NaiveBayes(DMCClassifier):
@@ -100,11 +100,13 @@ class SVM(DMCClassifier):
 
 
 class TheanoNeuralNetwork(DMCClassifier):
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False, activation='softmax'):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters=False)
         input_layer, output_layer = self.X.shape[1], len(np.unique(Y))
         inp = tn.layers.base.Input(size=input_layer, sparse='csr')
-        self.clf = tn.Classifier(layers=[inp, (100, activation), (50, activation), output_layer])
+        self.clf = tn.Classifier(layers=[inp,
+                                         (100, 'linear'), (50, 'norm:mean+relu'),
+                                         output_layer])
 
     def fit(self):
         self.clf.train((self.X, self.Y), algo='sgd', learning_rate=.05, momentum=0.9)
