@@ -100,14 +100,14 @@ class SVM(DMCClassifier):
 
 
 class TheanoNeuralNetwork(DMCClassifier):
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
-        super().__init__(X, Y)
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False, activation='softmax'):
+        super().__init__(X, Y, tune_parameters=False)
         input_layer, output_layer = self.X.shape[1], len(np.unique(Y))
         inp = tn.layers.base.Input(size=input_layer, sparse='csr')
-        self.clf = tn.Classifier([inp, 100, 50, output_layer])
+        self.clf = tn.Classifier(layers=[inp, (100, activation), (50, activation), output_layer])
 
     def fit(self):
-        self.clf.train((self.X, self.Y), algo='sgd', learning_rate=1e-4, momentum=0.9)
+        self.clf.train((self.X, self.Y), algo='sgd', learning_rate=.05, momentum=0.9)
         return self
 
 
