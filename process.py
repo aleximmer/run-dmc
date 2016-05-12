@@ -8,7 +8,6 @@ from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, TheanoNeuralN
     TensorFlowNeuralNetwork
 from dmc.classifiers import TreeBag, SVMBag
 from dmc.classifiers import AdaTree, AdaBayes, AdaSVM, GradBoost
-from dmc.ensemble import Ensemble
 
 
 processed_file = '/data/processed.csv'
@@ -32,12 +31,6 @@ def eval_classifiers(df: pd.DataFrame, split: int, tune_parameters: bool, clas=N
     print('precision', precision)
 
 
-def eval_ensemble(train: pd.DataFrame, test: pd.DataFrame):
-    ensemble = Ensemble(train, test)
-    ensemble.transform(binary_target=True)
-    ensemble.classify()
-
-
 def eval_features(df: pd.DataFrame):
     ft_importance = dmc.evaluation.evaluate_features_by_ensemble(df)
     print(ft_importance.sort_values('tree', ascending=False))
@@ -57,6 +50,7 @@ def processed_data(load_full=False) -> pd.DataFrame:
     else:
         df = dmc.loading.data_train()
     df = dmc.preprocessing.cleanse(df)
+    print('len after preprocessing', len(df))
     df = dmc.features.add_independent_features(df)
     if load_full:
         df.to_csv(rel_file_path_full, sep=',')
@@ -80,23 +74,21 @@ def shuffle(df: pd.DataFrame) -> pd.DataFrame:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('id_prefix', help='prefix of the id file to use')
     parser.add_argument('-f', action='store_true', help='load the unified dataset (train + class)')
     args = parser.parse_args()
-    id_prefix = args.id_prefix
     load_full = args.f
 
     data = processed_data(load_full)
-    train_ids, test_ids = dmc.loading.load_ids(id_prefix)
-    train, test = dmc.preprocessing.split_train_test(data, train_ids, test_ids)
-    split_point = len(train)
+    #train_ids, test_ids = dmc.loading.load_ids(id_prefix)
+    #train, test = dmc.preprocessing.split_train_test(data, train_ids, test_ids)
+    #split_point = len(train)
 
-    train = shuffle(train[:split_point])[:3000]
-    data = pd.concat([train, test])
+    #train = shuffle(train[:split_point])[:3000]
+    #data = pd.concat([train, test])
 
 
     #eval_ensemble(train, test)
-    print(split_point, len(data), len(train))
-    print('start evaluation')
-    eval_classifiers(data, 3000, tune_parameters=True, clas=SVM)
+    #print(split_point, len(data), len(train))
+    #print('start evaluation')
+    #eval_classifiers(data, 3000, tune_parameters=True, clas=SVM)
     #eval_features(data[:split_point])
