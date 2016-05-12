@@ -1,4 +1,11 @@
 import pandas as pd
+import os
+
+
+processed_file = '/data/processed.csv'
+processed_full_file = '/data/processed_full.csv'
+rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) + processed_file)
+rel_file_path_full = os.path.join(os.path.dirname(os.path.realpath(__file__)) + processed_full_file)
 
 
 def data_train():
@@ -11,11 +18,20 @@ def data_class():
                        sep=',', na_values='\\N')
 
 
-def data_full():
-    print('Load merged train and class data set.')
-    train_df = data_train()
-    class_df = data_class()
-    return pd.concat([train_df, class_df])
+def preprocessed_data():
+    if os.path.isfile(rel_file_path):
+        return pd.DataFrame.from_csv(rel_file_path)
+
+
+def preprocessed_full_data():
+    if os.path.isfile(rel_file_path):
+        return pd.DataFrame.from_csv(rel_file_path_full)
+
+
+def dump_data(df, full=False):
+    if full:
+        df.to_csv(rel_file_path_full)
+    df.to_csv(rel_file_path)
 
 
 def load_ids(id_file_prefix: str) -> (list, list):

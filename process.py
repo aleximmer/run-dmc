@@ -2,6 +2,7 @@ import os.path
 import argparse
 import pandas as pd
 import numpy as np
+import sys
 
 import dmc
 from dmc.classifiers import DecisionTree, Forest, NaiveBayes, SVM, TheanoNeuralNetwork, \
@@ -43,28 +44,30 @@ def eval_features(df: pd.DataFrame):
     print(ft_importance.sort_values('tree', ascending=False))
 
 
-def processed_data(load_full=False) -> pd.DataFrame:
-    """Create or read DataFrame with all features that are independent"""
-    rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) + processed_file)
-    rel_file_path_full = os.path.join(os.path.dirname(os.path.realpath(__file__))
-            + processed_full_file)
-    if os.path.isfile(rel_file_path) and not load_full:
-        return pd.DataFrame.from_csv(rel_file_path)
-    if os.path.isfile(rel_file_path_full) and load_full:
-        return pd.DataFrame.from_csv(rel_file_path_full)
-    if load_full:
-        df = dmc.loading.data_full()
-    else:
+def processed_data(load_train=True) -> pd.DataFrame:
+    if load_train:
         df = dmc.loading.data_train()
+    else:
+        df = dmc.loading.data_class()
     df = dmc.preprocessing.cleanse(df)
     df = dmc.features.add_independent_features(df)
-    if load_full:
-        df.to_csv(rel_file_path_full, sep=',')
-        print('Finished processing. Dumped results to {}.'.format(rel_file_path_full))
-    else:
-        df.to_csv(rel_file_path, sep=',')
-        print('Finished processing. Dumped results to {}.'.format(rel_file_path))
     return df
+
+
+def load_data(load_full=False) -> pd.DataFrame:
+    if load_full:
+        print('Load full data')
+        data = dmc.loading.preprocessed_full_data()
+    data = dmc.loading.preprocessed_data()
+
+    if not data:
+        data = processed_data(load_train=True)
+        if load_full:
+            class_data = processed_data(load_train=False)
+            data = pd.concat([data, class_data])
+            print('concat')
+    dmc.loading.dump_data(load_full)
+    return data
 
 
 def split_data_by_id(df: pd.DataFrame, id_file_prefix: str) -> (pd.DataFrame, int):
@@ -86,7 +89,9 @@ if __name__ == '__main__':
     id_prefix = args.id_prefix
     load_full = args.f
 
-    data = processed_data(load_full)
+    data = load_data(load_full)
+
+    sys.exit()
     train_ids, test_ids = dmc.loading.load_ids(id_prefix)
     train, test = dmc.preprocessing.split_train_test(data, train_ids, test_ids)
     split_point = len(train)
@@ -94,9 +99,8 @@ if __name__ == '__main__':
     train = shuffle(train[:split_point])[:3000]
     data = pd.concat([train, test])
 
-
-    #eval_ensemble(train, test)
+    # eval_ensemble(train, test)
     print(split_point, len(data), len(train))
     print('start evaluation')
     eval_classifiers(data, 3000, tune_parameters=True, clas=SVM)
-    #eval_features(data[:split_point])
+    # eval_features(data[:split_point])
