@@ -14,7 +14,7 @@ def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
     df_train = df_train[(df_train.quantity >= df_train.returnQuantity)]
     # nans in these rows definitely have returnQuantity == 0
     df_train = df_train.dropna(subset=['voucherID', 'rrp', 'productGroup'])
-    df = pd.concat([df_train, df_class])
+    df = pd.concat([df_train, df_class], ignore_index=True)
     df = fill_nas(df)
     return df
 
