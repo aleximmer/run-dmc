@@ -32,8 +32,8 @@ def split(train: pd.DataFrame, test: pd.DataFrame) -> dict:
         specifier = ''.join('k' + col if known else 'u' + col
                              for known, col in zip(mask, potentially_unknown))
         unknown_columns = [col for known, col in zip(mask, potentially_unknown) if not known]
-        nan_columns = [col for col in group.columns
-                       if group[col].dtype == float and np.isnan(group[col]).any()]
+        nan_columns = [col for col in group.columns if col != 'returnQuantity'
+                       and group[col].dtype == float and np.isnan(group[col]).any()]
         train_crop = train.copy().drop(unknown_columns + nan_columns, axis=1)
         test_group = group.copy().drop(unknown_columns + nan_columns + splitters, axis=1)
         result[key] = {'train': train_crop, 'test': test_group, 'name': specifier}
