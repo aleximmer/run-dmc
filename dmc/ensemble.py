@@ -1,12 +1,9 @@
-from multiprocessing import Pool
 from collections import OrderedDict
 import pandas as pd
 import numpy as np
 
-from dmc.transformation import normalize_features
-from dmc.transformation import transform, transform_preserving_header
-from dmc.classifiers import DecisionTree
-from dmc.evaluation import precision, dmc_cost
+from dmc.transformation import transform
+from dmc.evaluation import precision
 
 
 def add_recognition_vector(train: pd.DataFrame, test: pd.DataFrame, columns: list) \
@@ -28,7 +25,7 @@ def split(train: pd.DataFrame, test: pd.DataFrame) -> dict:
     splitters = list(known_mask.columns)
     result = OrderedDict()
     for mask, group in test.groupby(splitters):
-        key = ''.join('k' if known else 'u' for known,col in zip(mask, potentially_unknown))
+        key = ''.join('k' if known else 'u' for known, col in zip(mask, potentially_unknown))
         specifier = ''.join('k' + col if known else 'u' + col
                              for known, col in zip(mask, potentially_unknown))
         unknown_columns = [col for known, col in zip(mask, potentially_unknown) if not known]
@@ -42,7 +39,36 @@ def split(train: pd.DataFrame, test: pd.DataFrame) -> dict:
 
 class ECEnsemble:
     def __init__(self, train: pd.DataFrame, test: pd.DataFrame, params: dict):
+        """
+        :param train: train DF
+        :param test: test DF
+        :param params: dict with the following structure
+        Template for params:
+        params = {
+            'uuuu': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'uuuk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'uuku': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'uukk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'ukuu': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'ukuk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'ukku': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'ukkk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'kuuu': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'kuuk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'kuku': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'kukk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'kkuu': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'kkuk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'kkku': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
+            'kkkk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes}
+        }
+        u = unknown, k = known, scaler = None for Trees and else something like scale_features from
+        dmc.transformation, ignore_features are the features which should be ignored for the split,
+
+        :return:
+        """
         self.test_size = len(test)
+        self.train = train
         self.splits = split(train, test)
         self._enrich_splits(params)
         # TODO: nans in productGroup, voucherID, rrp result in prediction = 0
@@ -78,24 +104,31 @@ class ECEnsemble:
         splinter['test'] = (X[offset:], Y[offset:])
         return splinter
 
-    def classify(self):
+    def classify(self, dump_results=False):
         for k in self.splits:
             self.splits[k] = self._classify_split(self.splits[k])
         self.report()
-        self.dump_results()
+        if dump_results:
+            self.dump_results()
 
     @staticmethod
     def _classify_split(splinter: dict) -> dict:
         clf = splinter['classifier'](*splinter['train'])
         ypr = clf(splinter['test'][0])
-        # TODO: add predict proba
+        try:
+            probs = np.max(clf.clf.predict_proba(splinter['test'][0]), 1)
+            splinter['target']['confidence'] = np.squeeze(probs)
+        except:
+            print('Classifier offers no predict_proba method')
         splinter['target']['prediction'] = ypr
+        # returnQuantity can be nan for class data
         splinter['target']['returnQuantity'] = splinter['test'][1]
         return splinter
 
     def report(self):
         precs = []
         for k in self.splits:
+            # If no returnQuantity (target-set) is given, we cannot compute precisions
             if not np.isnan(self.splits[k]['target'].returnQuantity).any():
                 prec = precision(self.splits[k]['target'].returnQuantity,
                                  self.splits[k]['target'].prediction)
@@ -105,69 +138,14 @@ class ECEnsemble:
         if precs:
             precs = np.array(precs)
             print('OVERALL:', np.sum(np.multiply(precs, partials)))
+        else:
+            print('Target set has no evaluation labels')
 
     def dump_results(self):
-        pass
-
-
-"""
-class Ensemble:
-    def __init__(self, train: pd.DataFrame, test: pd.DataFrame):
-        self.test_size = len(test)
-        self.splits = split(train, test)
-        self.pool = Pool(processes=1)
-
-    def transform(self, binary_target=True, scalers=None, ignore_features=None):
-        scalers = [normalize_features] * len(self.splits) if scalers is None else scalers
-        ignore_features = ignore_features if ignore_features else [None] * len(self.splits)
-        binary = [binary_target] * len(self.splits)
-
-        transformation_tuples = zip(self.splits.items(), scalers, ignore_features, binary)
-        # trans = self.pool.map(self._transform_split, transformation_tuples)
-        trans = []
-        for elem in transformation_tuples:
-            trans.append(self._transform_split(elem[]))
-        for res in trans:
-            self.splits[res[0]] = res[1]
-
-    @staticmethod
-    def _transform_split(args):
-        item, scaler, rm_features, binary_target = args
-        offset = len(item[1][0])
-        data = pd.concat([item[1][0], item[1][1]])
-        X, Y, fts = transform_preserving_header(data, binary_target=binary_target,
-                                                scaler=scaler, ignore_features=rm_features)
-        return item[0], {
-            'features': fts,
-            'train': (X[:offset], Y[:offset]),
-            'test': (X[offset:], Y[offset:])}
-
-    def classify(self, classifiers=None, hyper_param=False, verbose=True):
-        classifiers = [DecisionTree] * len(self.splits) if classifiers is None else classifiers
-        split_apply = zip(self.splits.items(), classifiers, [hyper_param] * len(self.splits))
-
-        results = self.pool.map(self._classify_split, split_apply)
-
-        all_prec, all_cost, full_size = 0, 0, self.test_size
-        for size, prec, cost, name, importances in results:
-            all_prec += size / full_size * prec
-            all_cost += cost
-            if verbose:
-                print(name, ': size ', size, ' prec ', prec)
-                print('--------------------------------------')
-
-        print('Overall :', all_prec, all_cost)
-
-    @staticmethod
-    def _classify_split(args):
-        split, classifier, hyper_param = args
-        clf = classifier(*split[1]['train'], tune_parameters=hyper_param)
-        pred = clf(split[1]['test'][0])
-        prec = precision(pred, split[1]['test'][1])
-        cost = dmc_cost(pred, split[1]['test'][1])
-        try:
-            importances = clf.clf.feature_importances_
-        except:
-            importances = None
-        return len(split[1]['test'][1]), prec, cost, split[0], importances
-"""
+        # TODO: doesnt work yet
+        train = self.train
+        predicted = pd.concat([self.splits[k]['target'] for k in self.splits])
+        train = train.merge(predicted, how='left', left_index=True, right_index=True)
+        print(predicted.columns, train.columns)
+        print(precision(train.prediction, train.returnQuantity))
+        train.to_csv('data/predicted.csv', sep=';')

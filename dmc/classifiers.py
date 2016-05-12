@@ -82,7 +82,7 @@ class Forest(DMCClassifier):
                                       'min_samples_leaf': sp_randint(1, 100),
                                       'max_features': sp_randint(1, self.X.shape[1] - 1),
                                       'criterion': ['entropy', 'gini']}
-        self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8, max_depth=60, min_samples_leaf=80)
+        self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8, min_samples_leaf=30)
 
 
 class NaiveBayes(DMCClassifier):
