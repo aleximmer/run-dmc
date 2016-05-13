@@ -27,7 +27,7 @@ def split(train: pd.DataFrame, test: pd.DataFrame) -> dict:
     for mask, group in test.groupby(splitters):
         key = ''.join('k' if known else 'u' for known, col in zip(mask, potentially_unknown))
         specifier = ''.join('k' + col if known else 'u' + col
-                             for known, col in zip(mask, potentially_unknown))
+                            for known, col in zip(mask, potentially_unknown))
         unknown_columns = [col for known, col in zip(mask, potentially_unknown) if not known]
         nan_columns = [col for col in group.columns if col != 'returnQuantity'
                        and group[col].dtype == float and np.isnan(group[col]).any()]
@@ -67,8 +67,9 @@ class ECEnsemble:
 
         :return:
         """
+        self.test = test.copy()
+        test = test.dropna(subset=['rrp'])
         self.test_size = len(test)
-        self.test = test
         self.splits = split(train, test)
         self._enrich_splits(params)
         # TODO: nans in productGroup, voucherID, rrp result in prediction = 0
@@ -135,7 +136,7 @@ class ECEnsemble:
                                  self.splits[k]['target'].prediction)
                 print(k, 'precision', prec, 'size', len(self.splits[k]['target']))
                 precs.append(prec)
-        partials = np.array([len(self.splits[k]['target']) for k in self.splits])/self.test_size
+        partials = np.array([len(self.splits[k]['target']) for k in self.splits]) / self.test_size
         if precs:
             precs = np.array(precs)
             print('OVERALL:', np.sum(np.multiply(precs, partials)))
@@ -147,6 +148,10 @@ class ECEnsemble:
         predicted = pd.concat([self.splits[k]['target'] for k in self.splits])
         test['prediction'] = predicted.prediction.astype(int)
         test['confidence'] = predicted.confidence
+
+        test.loc[test['rrp'].isnull(), 'prediction'] = 0
+        test.loc[test['rrp'].isnull(), 'confidence'] = 1.0
+
         res = pd.DataFrame(test, test.index, columns=['orderID', 'articleID', 'colorCode',
                                                       'sizeCode', 'quantity', 'confidence',
                                                       'prediction'])
