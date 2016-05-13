@@ -59,9 +59,11 @@ def transform_feature_matrix(df: pd.DataFrame, ignore_features: list) -> csr_mat
 
 def transform_target_vector(df: pd.DataFrame, binary=False) -> np.array:
     """Only used on data with known labels otherwise it will fail"""
+    binarize = lambda x: 1 if x > 0 else 0
+    detect = lambda x: x if np.isnan(x) else binarize(x)
     if binary:
-        df.returnQuantity = df.returnQuantity.apply(lambda x: 1 if x > 0 else 0)
-    return np.squeeze(df.as_matrix(columns=['returnQuantity'])).astype(np.int32)
+        df.returnQuantity = df.returnQuantity.apply(detect)
+    return np.squeeze(df.as_matrix(columns=['returnQuantity'])).astype(np.float32)
 
 
 def transform_preserving_header(df: pd.DataFrame, ignore_features=None, scaler=None,

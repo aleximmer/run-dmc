@@ -145,7 +145,7 @@ class ECEnsemble:
     def dump_results(self):
         test = self.test
         predicted = pd.concat([self.splits[k]['target'] for k in self.splits])
-        test['prediction'] = predicted.prediction
+        test['prediction'] = predicted.prediction.astype(int)
         test['confidence'] = predicted.confidence
         res = pd.DataFrame(test, test.index, columns=['orderID', 'articleID', 'colorCode',
                                                       'sizeCode', 'quantity', 'confidence',
