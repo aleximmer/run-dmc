@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from multiprocessing import Pool
 import pandas as pd
 import numpy as np
 
@@ -67,6 +68,7 @@ class ECEnsemble:
 
         :return:
         """
+        self.processes = 4
         self.test = test.copy()
         test = test.dropna(subset=['rrp'])
         self.test_size = len(test)
@@ -80,8 +82,10 @@ class ECEnsemble:
             self.splits[k] = {**self.splits[k], **params[k]}
 
     def transform(self):
-        for k in self.splits:
-            self.splits[k] = self._transform_split(self.splits[k])
+        pool = Pool(self.processes)
+        self.splits = pool.map(self._transform_split, self.splits, 1)
+        # for k in self.splits:
+        #     self.splits[k] = self._transform_split(self.splits[k])
 
     @staticmethod
     def _subsample(train: pd.DataFrame, size: int):
@@ -106,8 +110,10 @@ class ECEnsemble:
         return splinter
 
     def classify(self, dump_results=False):
-        for k in self.splits:
-            self.splits[k] = self._classify_split(self.splits[k])
+        pool = Pool(self.processes)
+        self.splits = pool.map(self._classify_split, self.splits, 1)
+        # for k in self.splits:
+        #     self.splits[k] = self._classify_split(self.splits[k])
         self.report()
         if dump_results:
             self.dump_results()
