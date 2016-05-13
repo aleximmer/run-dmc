@@ -7,6 +7,7 @@ from dmc.features import SelectedFeatures
 def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
     """Drop data which doesn't comply with constraints
     Dropped rows would be """
+    df.voucherID.fillna(0, inplace=True)
     df_train = df[~np.isnan(df.returnQuantity)]
     df_class = df[np.isnan(df.returnQuantity)]
     print(len(df_train), len(df_class))
