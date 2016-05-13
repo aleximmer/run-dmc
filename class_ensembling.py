@@ -11,8 +11,8 @@ from dmc.features import add_dependent_features
 """ Train on 100%, Classify on class data set """
 
 data = processed_data(load_full=True)
-train = data[data.returnQuantity.isnull()]
-test = data[~data.returnQuantity.isnull()]
+train = data[~data.returnQuantity.isnull()]
+test = data[data.returnQuantity.isnull()]
 train, test = add_dependent_features(train, test)
 
 # allocate Memory
