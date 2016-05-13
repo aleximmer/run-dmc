@@ -82,10 +82,11 @@ class ECEnsemble:
             self.splits[k] = {**self.splits[k], **params[k]}
 
     def transform(self):
+        tuples = zip(self.splits, [self.splits[k] for k in self.splits])
         pool = Pool(self.processes)
-        self.splits = pool.map(self._transform_split, self.splits, 1)
-        # for k in self.splits:
-        #     self.splits[k] = self._transform_split(self.splits[k])
+        splits = pool.map(self._transform_split, tuples, 1)
+        for k, d in splits:
+            self.splits[k] = d
 
     @staticmethod
     def _subsample(train: pd.DataFrame, size: int):
@@ -97,7 +98,8 @@ class ECEnsemble:
         return pd.DataFrame(test, index=test.index, columns=['returnQuantity'])
 
     @classmethod
-    def _transform_split(cls, splinter: dict) -> dict:
+    def _transform_split(cls, splinter: tuple) -> dict:
+        key, splinter = splinter
         if splinter['sample']:
             splinter['train'] = cls._subsample(splinter['train'], splinter['sample'])
         offset = len(splinter['train'])
@@ -105,21 +107,26 @@ class ECEnsemble:
         X, Y = transform(data, binary_target=True, scaler=splinter['scaler'],
                          ignore_features=splinter['ignore_features'])
         splinter['target'] = cls.transform_target_frame(splinter['test'])
-        splinter['train'] = (X[:offset], Y[:offset])
-        splinter['test'] = (X[offset:], Y[offset:])
-        return splinter
+        splinter['train'] = (X[:offset], Y[:offset].astype(np.int32))
+        if np.isnan(Y[offset:]).any():
+            splinter['test'] = (X[offset:], Y[offset:])
+        else:
+            splinter['test'] = (X[offset:], Y[offset:])
+        return key, splinter
 
     def classify(self, dump_results=False):
+        tuples = zip(self.splits, [self.splits[k] for k in self.splits])
         pool = Pool(self.processes)
-        self.splits = pool.map(self._classify_split, self.splits, 1)
-        # for k in self.splits:
-        #     self.splits[k] = self._classify_split(self.splits[k])
+        splits = pool.map(self._classify_split, tuples, 1)
+        for k, d in splits:
+            self.splits[k] = d
         self.report()
         if dump_results:
             self.dump_results()
 
     @staticmethod
-    def _classify_split(splinter: dict) -> dict:
+    def _classify_split(splinter: tuple) -> dict:
+        key, splinter = splinter
         clf = splinter['classifier'](*splinter['train'])
         ypr = clf(splinter['test'][0])
         try:
@@ -131,7 +138,7 @@ class ECEnsemble:
         splinter['target']['prediction'] = ypr
         # returnQuantity can be nan for class data
         splinter['target']['returnQuantity'] = splinter['test'][1]
-        return splinter
+        return key, splinter
 
     def report(self):
         precs = []

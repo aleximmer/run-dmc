@@ -118,7 +118,7 @@ class TheanoNeuralNetwork(DMCClassifier):
 
 class BagEnsemble(DMCClassifier):
     classifier = None
-    estimators = 50
+    estimators = 20
     max_features = .5
     max_samples = .5
 
@@ -218,7 +218,7 @@ class TensorFlowNeuralNetwork(DMCClassifier):
     n_classes = None
     optimizer = 'Adagrad'
 
-    def __init__(self, X: np.array, Y: np.array, tune_parameters: bool):
+    def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters=False)
         self.X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
 
