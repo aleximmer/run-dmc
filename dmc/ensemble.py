@@ -115,7 +115,7 @@ class ECEnsemble:
             splinter['test'] = (X[offset:], Y[offset:])
         return key, splinter
 
-    def classify(self, dump_results=False):
+    def classify(self, dump_results=False, dump_name=None):
         tuples = zip(self.splits, [self.splits[k] for k in self.splits])
         pool = Pool(self.processes)
         splits = pool.map(self._classify_split, tuples, 1)
@@ -123,7 +123,7 @@ class ECEnsemble:
             self.splits[k] = d
         self.report()
         if dump_results:
-            self.dump_results()
+            self.dump_results(dump_name)
 
     @staticmethod
     def _classify_split(splinter: tuple) -> dict:
@@ -157,7 +157,7 @@ class ECEnsemble:
         else:
             print('Target set has no evaluation labels')
 
-    def dump_results(self):
+    def dump_results(self, file_name):
         test = self.test
         predicted = pd.concat([self.splits[k]['target'] for k in self.splits])
         test['prediction'] = predicted.prediction.astype(int)
@@ -169,4 +169,4 @@ class ECEnsemble:
         res = pd.DataFrame(test, test.index, columns=['orderID', 'articleID', 'colorCode',
                                                       'sizeCode', 'quantity', 'confidence',
                                                       'prediction'])
-        res.to_csv('data/predicted.csv', sep=';')
+        res.to_csv('data/' + file_name + '.csv', sep=';')

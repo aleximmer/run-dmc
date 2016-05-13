@@ -238,4 +238,4 @@ class TensorFlowNeuralNetwork(DMCClassifier):
         return self.clf.predict(X)
 
     def predict_proba(self, X: csr_matrix):
-        return self.clf.predict(X.todense())
+        return self.clf.predict_proba(X.todense())
