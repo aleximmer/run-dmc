@@ -68,7 +68,7 @@ class ECEnsemble:
 
         :return:
         """
-        self.processes = 4
+        self.processes = 2
         self.test = test.copy()
         test = test.dropna(subset=['rrp'])
         self.test_size = len(test)
@@ -82,7 +82,8 @@ class ECEnsemble:
             self.splits[k] = {**self.splits[k], **params[k]}
 
     def transform(self):
-        tuples = zip(self.splits, [self.splits[k] for k in self.splits])
+        tuples = zip([k for k in self.splits if self.splits],
+                     [self.splits[k] for k in self.splits])
         pool = Pool(self.processes)
         splits = pool.map(self._transform_split, tuples, 1)
         for k, d in splits:

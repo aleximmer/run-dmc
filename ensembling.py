@@ -1,34 +1,41 @@
-from process import processed_data, split_data_by_id
-import pandas as pd
-import numpy as np
-from dmc.ensemble import Ensemble
-from dmc.classifiers import Forest, DecisionTree, NaiveBayes
+from process import processed_data, split_data_at_id
+from dmc.ensemble import ECEnsemble
+from dmc.classifiers import Forest, SVM, TheanoNeuralNetwork
+from dmc.classifiers import TensorFlowNeuralNetwork as TensorNetwork
+from dmc.classifiers import NaiveBayes as Bayes
+from dmc.transformation import scale_features as scaler
+from dmc.transformation import scale_raw_features as raw_scaler
 
 
-evaluation_sets = ['rawMirrored', 'rawLinearSample']
+data = processed_data(load_full=True)
+train, test = split_data_at_id(data, 1527394)
+# allocate Memory
 
-data = processed_data()
+params = {
+    'uuuu': {'sample': 200000, 'scaler': raw_scaler, 'ignore_features': None, 'classifier': TensorNetwork},
+    'uuuk': {'sample': 200000, 'scaler': raw_scaler, 'ignore_features': None, 'classifier': TensorNetwork},
+    'uuku': {'sample': None, 'scaler': scaler, 'ignore_features': ['returnQuantity', 'orderID', 'orderDate'], 'classifier': Bayes},
+    'uukk': {'sample': 100000, 'scaler': raw_scaler, 'ignore_features': None, 'classifier': SVM},
+    'ukuu': {'sample': 200000, 'scaler': None, 'ignore_features': None, 'classifier': Forest},
+    'ukuk': {'sample': 200000, 'scaler': raw_scaler, 'ignore_features': None, 'classifier': TensorNetwork},
+    'ukku': {'sample': 200000, 'scaler': raw_scaler, 'ignore_features': None, 'classifier': TensorNetwork},
+    'ukkk': {'sample': 200000, 'scaler': None, 'ignore_features': None, 'classifier': Forest},
+    'kuuu': {'sample': 200000, 'scaler': raw_scaler, 'ignore_features': None, 'classifier': TensorNetwork},
+    'kuuk': {'sample': 200000, 'scaler': raw_scaler, 'ignore_features': None, 'classifier': SVM},
+    'kuku': {'sample': 200000, 'scaler': raw_scaler, 'ignore_features': None, 'classifier': TensorNetwork},
+    'kukk': {'sample': 200000, 'scaler': raw_scaler, 'ignore_features': None, 'classifier': TensorNetwork},
+    'kkuu': {'sample': 200000, 'scaler': None, 'ignore_features': None, 'classifier': Forest},
+    'kkuk': {'sample': 200000, 'scaler': None, 'ignore_features': None, 'classifier': Forest},
+    'kkku': {'sample': 200000, 'scaler': None, 'ignore_features': None, 'classifier': Forest},
+    'kkkk': {'sample': 200000, 'scaler': None, 'ignore_features': None, 'classifier': Forest}
+}
 
+for p in params:
+    params[p]['sample'] = 10000
+    params[p]['scaler'] = None
 
-def shuffle(df: pd.DataFrame) -> pd.DataFrame:
-    return df.reindex(np.random.permutation(df.index))
-
-for eval_set in evaluation_sets:
-    print('================================')
-    print('Train and evaluate', eval_set)
-    train, test = split_data_by_id(data, eval_set)
-    train = shuffle(train)[:250000]
-    print('train', len(train), 'test', len(test))
-    ensemble = Ensemble(train, test)
-    ensemble.transform(binary_target=True)
-    ensemble.classify(classifiers=[Forest] * len(ensemble.splits),
-                      verbose=True)
-
-for eval_set in evaluation_sets:
-    print('================================')
-    print('Train and evaluate', eval_set)
-    train, test = split_data_by_id(data, eval_set)
-    ensemble = Ensemble(train, test)
-    ensemble.transform(binary_target=True)
-    ensemble.classify(classifiers=[Forest] * len(ensemble.splits),
-                      hyper_param=True, verbose=False)
+ensemble = ECEnsemble(train, test, params)
+print('transform')
+ensemble.transform()
+print('classify')
+ensemble.classify(dump_results=True)
