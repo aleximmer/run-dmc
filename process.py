@@ -44,7 +44,9 @@ def processed_data(load_full=False) -> pd.DataFrame:
     if os.path.isfile(rel_file_path) and not load_full:
         return pd.DataFrame.from_csv(rel_file_path)
     if os.path.isfile(rel_file_path_full) and load_full:
-        return pd.DataFrame.from_csv(rel_file_path_full)
+        df = pd.DataFrame.from_csv(rel_file_path_full)
+        df.sizeCode = df.sizeCode.astype(str)
+        return df
     if load_full:
         df = dmc.loading.data_full()
     else:
@@ -64,6 +66,13 @@ def processed_data(load_full=False) -> pd.DataFrame:
 def split_data_by_id(df: pd.DataFrame, id_file_prefix: str) -> (pd.DataFrame, int):
     train_ids, test_ids = dmc.loading.load_ids(id_file_prefix)
     train, test = dmc.preprocessing.split_train_test(df, train_ids, test_ids)
+    train, test = dmc.features.add_dependent_features(train, test)
+    return train, test
+
+
+def split_data_at_id(df: pd.DataFrame, orderID: int) -> (pd.DataFrame, pd.DataFrame):
+    train = df[df.orderID < orderID]
+    test = df[df.orderID >= orderID]
     train, test = dmc.features.add_dependent_features(train, test)
     return train, test
 
