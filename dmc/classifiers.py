@@ -62,6 +62,9 @@ class DMCClassifier:
     def predict(self, X: csr_matrix) -> np.array:
         return self.clf.predict(X)
 
+    def predict_proba(self, X: csr_matrix) -> np.array:
+        return self.clf.predict_proba(X)
+
 
 class DecisionTree(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
@@ -82,7 +85,7 @@ class Forest(DMCClassifier):
                                       'min_samples_leaf': sp_randint(1, 100),
                                       'max_features': sp_randint(1, self.X.shape[1] - 1),
                                       'criterion': ['entropy', 'gini']}
-        self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8, min_samples_leaf=30)
+        self.clf = RandomForestClassifier(n_estimators=100, n_jobs=8)
 
 
 class NaiveBayes(DMCClassifier):
@@ -152,8 +155,8 @@ class SVMBag(DMCClassifier):
 
 class AdaBoostEnsemble(DMCClassifier):
     classifier = None
-    estimators = 50
-    learning_rate = .5
+    estimators = 800
+    learning_rate = .25
     algorithm = 'SAMME.R'
 
     def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
@@ -204,6 +207,9 @@ class GradBoost(DMCClassifier):
     def predict(self, X: csr_matrix) -> np.array:
         return self.clf.predict(X.toarray())
 
+    def predict_proba(self, X: csr_matrix):
+        return self.clf.predict(X.toarray())
+
 
 class TensorFlowNeuralNetwork(DMCClassifier):
     steps = 2000
@@ -230,3 +236,6 @@ class TensorFlowNeuralNetwork(DMCClassifier):
     def predict(self, X: csr_matrix):
         X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
         return self.clf.predict(X)
+
+    def predict_proba(self, X: csr_matrix):
+        return self.clf.predict(X.todense())

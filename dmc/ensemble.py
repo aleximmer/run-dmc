@@ -68,7 +68,7 @@ class ECEnsemble:
         :return:
         """
         self.test_size = len(test)
-        self.train = train
+        self.test = test
         self.splits = split(train, test)
         self._enrich_splits(params)
         # TODO: nans in productGroup, voucherID, rrp result in prediction = 0
@@ -89,7 +89,7 @@ class ECEnsemble:
 
     @staticmethod
     def transform_target_frame(test: pd.DataFrame):
-        return pd.DataFrame(test, columns=['returnQuantity'])
+        return pd.DataFrame(test, index=test.index, columns=['returnQuantity'])
 
     @classmethod
     def _transform_split(cls, splinter: dict) -> dict:
@@ -116,10 +116,11 @@ class ECEnsemble:
         clf = splinter['classifier'](*splinter['train'])
         ypr = clf(splinter['test'][0])
         try:
-            probs = np.max(clf.clf.predict_proba(splinter['test'][0]), 1)
+            probs = np.max(clf.predict_proba(splinter['test'][0]), 1)
             splinter['target']['confidence'] = np.squeeze(probs)
-        except:
-            print('Classifier offers no predict_proba method')
+        except Exception as e:
+            print('Classifier offers no predict_proba method', e)
+            splinter['target']['confidence'] = np.nan
         splinter['target']['prediction'] = ypr
         # returnQuantity can be nan for class data
         splinter['target']['returnQuantity'] = splinter['test'][1]
@@ -142,10 +143,11 @@ class ECEnsemble:
             print('Target set has no evaluation labels')
 
     def dump_results(self):
-        # TODO: doesnt work yet
-        train = self.train
+        test = self.test
         predicted = pd.concat([self.splits[k]['target'] for k in self.splits])
-        train = train.merge(predicted, how='left', left_index=True, right_index=True)
-        print(predicted.columns, train.columns)
-        print(precision(train.prediction, train.returnQuantity))
-        train.to_csv('data/predicted.csv', sep=';')
+        test['prediction'] = predicted.prediction
+        test['confidence'] = predicted.confidence
+        res = pd.DataFrame(test, test.index, columns=['orderID', 'articleID', 'colorCode',
+                                                      'sizeCode', 'quantity', 'confidence',
+                                                      'prediction'])
+        res.to_csv('data/predicted.csv', sep=';')
