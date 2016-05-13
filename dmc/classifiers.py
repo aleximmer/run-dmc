@@ -219,7 +219,7 @@ class TensorFlowNeuralNetwork(DMCClassifier):
     optimizer = 'Adagrad'
 
     def __init__(self, X: np.array, Y: np.array, tune_parameters: bool):
-        super().__init__(X, Y, tune_parameters)
+        super().__init__(X, Y, tune_parameters=False)
         self.X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
 
         self.n_classes = len(np.unique(Y))
