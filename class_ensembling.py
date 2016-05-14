@@ -7,6 +7,8 @@ from dmc.transformation import scale_raw_features as raw_scaler
 from dmc.features import add_dependent_features
 
 
+quads = ['articleID', 'customerID', 'voucherID', 'productGroup']
+
 """ Train on 100% (sampled), Classify on class data set """
 
 data = processed_data(load_full=True)
@@ -19,24 +21,24 @@ del data
 
 params = {
     # article, customer, productGroup
-    'uuuu': {'sample': 500000, 'scaler': scaler, 'classifier': TensorNetwork},
+    'uuuu': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
     'uuuk': {'sample': 100000, 'scaler': raw_scaler, 'classifier': SVM},
-    'uuku': {'sample': 500000, 'scaler': scaler, 'classifier': TensorNetwork},
-    'uukk': {'sample': 100000, 'scaler': raw_scaler, 'classifier': SVM},
-    'ukuu': {'sample': 500000, 'scaler': None, 'classifier': Forest},
+    'uuku': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
+    'uukk': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
+    'ukuu': {'sample': 400000, 'scaler': None, 'classifier': Forest},
     'ukuk': {'sample': 500000, 'scaler': None, 'classifier': Forest},
-    'ukku': {'sample': 500000, 'scaler': scaler, 'classifier': Forest},
-    'ukkk': {'sample': 500000, 'scaler': None, 'classifier': Forest},
+    'ukku': {'sample': 500000, 'scaler': None, 'classifier': Forest},
+    'ukkk': {'sample': 600000, 'scaler': None, 'classifier': Forest},
     'kuuk': {'sample': 100000, 'scaler': raw_scaler, 'classifier': SVM},
-    'kukk': {'sample': 500000, 'scaler': None, 'classifier': Forest},
-    'kkuk': {'sample': 500000, 'scaler': None, 'classifier': Forest},
+    'kukk': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
+    'kkuk': {'sample': 600000, 'scaler': None, 'classifier': Forest},
     'kkkk': {'sample': 750000, 'scaler': None, 'classifier': Forest}
 }
 
 for k in params:
     params[k]['ignore_features'] = None
 
-ensemble = ECEnsemble(train, test, params)
+ensemble = ECEnsemble(train, test, params, quads)
 print('transform for class')
 ensemble.transform()
 print('classify for class')
