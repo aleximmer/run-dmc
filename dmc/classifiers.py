@@ -212,8 +212,8 @@ class GradBoost(DMCClassifier):
 
 
 class TensorFlowNeuralNetwork(DMCClassifier):
-    steps = 10000
-    learning_rate = 1e-3
+    steps = 20000
+    learning_rate = 0.05
     hidden_units = [100, 100]
     optimizer = 'SGD'
 
