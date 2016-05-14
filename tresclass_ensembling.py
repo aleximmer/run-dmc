@@ -20,11 +20,11 @@ del data
 
 params = {
     # article, customer, productGroup
-    'uuu': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
+    'uuu': {'sample': 125000, 'scaler': scaler, 'classifier': TensorNetwork},
+    'uuk': {'sample': 125000, 'scaler': scaler, 'classifier': TensorNetwork},
     'uku': {'sample': 750000, 'scaler': None, 'classifier': Forest},
-    'kuu': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
-    'kuk': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
-    'kku': {'sample': 750000, 'scaler': None, 'classifier': Forest},
+    'ukk': {'sample': 750000, 'scaler': None, 'classifier': Forest},
+    'kuk': {'sample': 125000, 'scaler': scaler, 'classifier': TensorNetwork},
     'kkk': {'sample': 750000, 'scaler': None, 'classifier': Forest}
 }
 
