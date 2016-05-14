@@ -16,20 +16,19 @@ def add_recognition_vector(train: pd.DataFrame, test: pd.DataFrame, columns: lis
     return known_mask
 
 
-def split(train: pd.DataFrame, test: pd.DataFrame) -> dict:
+def split(train: pd.DataFrame, test: pd.DataFrame, categorical_splits: list) -> dict:
     """For each permutation of known and unknown categories return the cropped train DataFrame and
     the test subset for evaluation.
     """
-    potentially_unknown = ['articleID', 'customerID', 'voucherID', 'productGroup']
-    known_mask = add_recognition_vector(train, test, potentially_unknown)
+    known_mask = add_recognition_vector(train, test, categorical_splits)
     test = pd.concat([test, known_mask], axis=1)
     splitters = list(known_mask.columns)
     result = OrderedDict()
     for mask, group in test.groupby(splitters):
-        key = ''.join('k' if known else 'u' for known, col in zip(mask, potentially_unknown))
+        key = ''.join('k' if known else 'u' for known, col in zip(mask, categorical_splits))
         specifier = ''.join('k' + col if known else 'u' + col
-                            for known, col in zip(mask, potentially_unknown))
-        unknown_columns = [col for known, col in zip(mask, potentially_unknown) if not known]
+                            for known, col in zip(mask, categorical_splits))
+        unknown_columns = [col for known, col in zip(mask, categorical_splits) if not known]
         nan_columns = [col for col in group.columns if col != 'returnQuantity'
                        and group[col].dtype == float and np.isnan(group[col]).any()]
         train_crop = train.copy().drop(unknown_columns + nan_columns, axis=1)
@@ -39,40 +38,39 @@ def split(train: pd.DataFrame, test: pd.DataFrame) -> dict:
 
 
 class ECEnsemble:
-    def __init__(self, train: pd.DataFrame, test: pd.DataFrame, params: dict):
+    def __init__(self, train: pd.DataFrame, test: pd.DataFrame, params: dict,
+                 categorical_splits=None):
         """
         :param train: train DF
         :param test: test DF
         :param params: dict with the following structure
         Template for params:
         params = {
-            'uuuu': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'uuuk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'uuku': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'uukk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'ukuu': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'ukuk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'ukku': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'ukkk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'kuuu': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'kuuk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'kuku': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'kukk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'kkuu': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'kkuk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'kkku': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes},
-            'kkkk': {'sample': None, 'scaler': scaler, 'ignore_features': None, 'classifier': Bayes}
+            'uuuu': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'uuku': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'ukuu': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'ukku': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kuuu': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kuuk': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kuku': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kukk': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kkuu': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kkuk': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kkku': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kkkk': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes}
         }
         u = unknown, k = known, scaler = None for Trees and else something like scale_features from
         dmc.transformation, ignore_features are the features which should be ignored for the split,
 
         :return:
         """
-        self.processes = 2
+        if categorical_splits is None:
+            categorical_splits = ['articleID', 'customerID', 'voucherID', 'productGroup']
+        self.processes = 4
         self.test = test.copy()
         test = test.dropna(subset=['rrp'])
         self.test_size = len(test)
-        self.splits = split(train, test)
+        self.splits = split(train, test, categorical_splits)
         self._enrich_splits(params)
         # TODO: nans in productGroup, voucherID, rrp result in prediction = 0
 
@@ -139,6 +137,7 @@ class ECEnsemble:
         splinter['target']['prediction'] = ypr
         # returnQuantity can be nan for class data
         splinter['target']['returnQuantity'] = splinter['test'][1]
+        print('Finished fitting', key, 'with', splinter['classifier'])
         return key, splinter
 
     def report(self):
