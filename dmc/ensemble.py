@@ -137,6 +137,9 @@ class ECEnsemble:
         splinter['target']['prediction'] = ypr
         # returnQuantity can be nan for class data
         splinter['target']['returnQuantity'] = splinter['test'][1]
+        # free memory
+        splinter['train'] = None
+        splinter['test'] = None
         print('Finished fitting', key, 'with', splinter['classifier'])
         return key, splinter
 
