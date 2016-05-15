@@ -103,6 +103,7 @@ class ECEnsemble:
     def _transform_split(cls, splinter: tuple) -> dict:
         key, splinter = splinter
         drop = False
+        ratio = None
         if splinter['sample'] and not splinter['dropit']:
             print('dont dropit')
             splinter['train'] = cls._subsample(splinter['train'], splinter['sample'])
@@ -111,11 +112,12 @@ class ECEnsemble:
             splinter['train'] = splinter['train_df']
             splinter['test'] = splinter['test_df']
             drop = True
+            ratio = 0.7 # TODO: OPTIMIZE
         offset = len(splinter['train'])
         data = pd.concat([splinter['train'], splinter['test']])
         X, Y = transform(data, binary_target=True, scaler=splinter['scaler'],
                          ignore_features=splinter['ignore_features'],
-                         drop_features=drop)
+                         drop_features=drop, ratio=ratio)
         splinter['target'] = cls.transform_target_frame(splinter['test'])
         splinter['train_df'] = splinter['train'].copy()
         splinter['test_df'] = splinter['test'].copy()
