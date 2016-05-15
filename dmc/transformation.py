@@ -129,6 +129,6 @@ def transform(df: pd.DataFrame, ignore_features=None, scaler=None, binary_target
         assert ratio is not None
         comps = int(X.shape[1] * ratio)
         pca = SparsePCA(n_components=comps, n_jobs=4)
-        X = pca.fit_transform(X)
+        X = pca.fit_transform(X.toarray())
     Y = transform_target_vector(df, binary_target)
     return csr_matrix(X), Y
