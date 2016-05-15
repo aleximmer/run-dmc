@@ -227,7 +227,7 @@ class TensorFlowNeuralNetwork(DMCClassifier):
             self.param_dist_random = {'learning_rate': np.arange(0.01, 0.33, 0.02),
                                       'optimizer': ['SGD'],
                                       'hidden_units': [[100, 100]],
-                                      'steps': sp_randint(5000, 25000)}
+                                      'steps': sp_randint(2000, 20000)}
 
         self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units,
                                                   n_classes=output_layer, steps=self.steps,

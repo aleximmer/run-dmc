@@ -66,7 +66,7 @@ class ECEnsemble:
         """
         if categorical_splits is None:
             categorical_splits = ['articleID', 'customerID', 'voucherID', 'productGroup']
-        self.processes = 4
+        self.processes = 2
         self.test = test.copy()
         test = test.dropna(subset=['rrp'])
         self.test_size = len(test)
@@ -126,7 +126,7 @@ class ECEnsemble:
     @staticmethod
     def _classify_split(splinter: tuple) -> dict:
         key, splinter = splinter
-        clf = splinter['classifier'](*splinter['train'])
+        clf = splinter['classifier'](splinter['train'][0], splinter['train'][1], splinter['optimize'])
         ypr = clf(splinter['test'][0])
         try:
             probs = np.max(clf.predict_proba(splinter['test'][0]), 1)
