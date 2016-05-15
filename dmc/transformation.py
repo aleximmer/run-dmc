@@ -118,17 +118,16 @@ def normalize_raw_features(X: np.array) -> np.array:
 
 
 def transform(df: pd.DataFrame, ignore_features=None, scaler=None, binary_target=False,
-              dim_reduction=False, dimensions=None) \
+                drop_features=False, ratio=0.7) \
         -> (csr_matrix, np.array):
     ignore_features = ignore_features if ignore_features is not None \
         else default_ignore_features
     X = csr_matrix(transform_feature_matrix(df, ignore_features))
     if scaler is not None:
         X = scaler(X)
-    if dim_reduction:
-        assert dimensions > 0
-        # also try pca = SparsePCA()
-        pca = PCA(n_components=dimensions, whiten=True)
-        X = pca.fit_transform(X.toarray())
+    if drop_features:
+        comps = int(X.shape[1] * ratio)
+        pca = SparsePCA(n_components=comps, n_jobs=4)
+        X = pca.fit_transform(X)
     Y = transform_target_vector(df, binary_target)
-    return X, Y
+    return csr_matrix(X), Y

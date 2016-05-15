@@ -20,18 +20,18 @@ del data
 
 params = {
     # article, customer, productGroup
-    'uuuu': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
-    'uuuk': {'sample': 125000, 'scaler': raw_scaler, 'classifier': SVM},
-    'uuku': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
-    'uukk': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
-    'ukuu': {'sample': 750000, 'scaler': None, 'classifier': Forest},
-    'ukuk': {'sample': 850000, 'scaler': None, 'classifier': Forest},
-    'ukku': {'sample': 850000, 'scaler': None, 'classifier': Forest},
-    'ukkk': {'sample': 1000000, 'scaler': None, 'classifier': Forest},
-    'kuuk': {'sample': 125000, 'scaler': raw_scaler, 'classifier': SVM},
-    'kukk': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
-    'kkuk': {'sample': 1000000, 'scaler': None, 'classifier': Forest},
-    'kkkk': {'sample': 1200000, 'scaler': None, 'classifier': Forest}
+    'uuuu': {'sample': 70000, 'scaler': scaler, 'classifier': TensorNetwork},
+    'uuuk': {'sample': 10000, 'scaler': raw_scaler, 'classifier': SVM},
+    'uuku': {'sample': 70000, 'scaler': scaler, 'classifier': TensorNetwork},
+    'uukk': {'sample': 70000, 'scaler': scaler, 'classifier': TensorNetwork},
+    'ukuu': {'sample': 70000, 'scaler': None, 'classifier': Forest},
+    'ukuk': {'sample': 70000, 'scaler': None, 'classifier': Forest},
+    'ukku': {'sample': 70000, 'scaler': None, 'classifier': Forest},
+    'ukkk': {'sample': 70000, 'scaler': None, 'classifier': Forest},
+    'kuuk': {'sample': 10000, 'scaler': raw_scaler, 'classifier': SVM},
+    'kukk': {'sample': 70000, 'scaler': scaler, 'classifier': TensorNetwork},
+    'kkuk': {'sample': 70000, 'scaler': None, 'classifier': Forest},
+    'kkkk': {'sample': 70000, 'scaler': None, 'classifier': Forest}
 }
 
 for k in params:
@@ -41,7 +41,13 @@ for k in params:
 params['ukuu']['classifier'] = Bayes
 
 ensemble = ECEnsemble(train, test, params, quads)
+
 print('transform for test')
-ensemble.transform()
+ensemble.transform(drop_features=False)
 print('classify for test')
-ensemble.classify(dump_results=True, dump_name='quadtest-ensemble-extreme')
+ensemble.classify(dump_results=False)
+
+print('transform for test 2')
+ensemble.transform(drop_features=True)
+print('classify for test 2')
+ensemble.classify(dump_results=False)

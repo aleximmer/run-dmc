@@ -2,9 +2,10 @@ from collections import OrderedDict
 from multiprocessing import Pool
 import pandas as pd
 import numpy as np
+from sklearn.decomposition import SparsePCA
 
-from dmc.transformation import transform
-from dmc.evaluation import precision
+from dmc.transformation import transform, default_ignore_features
+from dmc.evaluation import precision, evaluate_features_by_ensemble
 
 
 def add_recognition_vector(train: pd.DataFrame, test: pd.DataFrame, columns: list) \
@@ -66,7 +67,7 @@ class ECEnsemble:
         """
         if categorical_splits is None:
             categorical_splits = ['articleID', 'customerID', 'voucherID', 'productGroup']
-        self.processes = 4
+        self.processes = 2
         self.test = test.copy()
         test = test.dropna(subset=['rrp'])
         self.test_size = len(test)
@@ -79,7 +80,9 @@ class ECEnsemble:
         for k in self.splits:
             self.splits[k] = {**self.splits[k], **params[k]}
 
-    def transform(self):
+    def transform(self, drop_features=False):
+        for s in self.splits:
+            self.splits[s]['dropit'] = drop_features
         tuples = zip([k for k in self.splits if self.splits],
                      [self.splits[k] for k in self.splits])
         pool = Pool(self.processes)
@@ -99,13 +102,23 @@ class ECEnsemble:
     @classmethod
     def _transform_split(cls, splinter: tuple) -> dict:
         key, splinter = splinter
-        if splinter['sample']:
+        drop = False
+        if splinter['sample'] and not splinter['dropit']:
+            print('dont dropit')
             splinter['train'] = cls._subsample(splinter['train'], splinter['sample'])
+        elif splinter['dropit']:
+            print('dropit')
+            splinter['train'] = splinter['train_df']
+            splinter['test'] = splinter['test_df']
+            drop = True
         offset = len(splinter['train'])
         data = pd.concat([splinter['train'], splinter['test']])
         X, Y = transform(data, binary_target=True, scaler=splinter['scaler'],
-                         ignore_features=splinter['ignore_features'])
+                         ignore_features=splinter['ignore_features'],
+                         drop_features=drop)
         splinter['target'] = cls.transform_target_frame(splinter['test'])
+        splinter['train_df'] = splinter['train'].copy()
+        splinter['test_df'] = splinter['test'].copy()
         splinter['train'] = (X[:offset], Y[:offset].astype(np.int32))
         if np.isnan(Y[offset:]).any():
             splinter['test'] = (X[offset:], Y[offset:])
