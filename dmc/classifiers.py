@@ -21,7 +21,7 @@ from sklearn.grid_search import RandomizedSearchCV
 class DMCClassifier:
     clf = None
 
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False, *args):
         assert len(Y) == X.shape[0]
         self.X = X
         self.Y = Y
@@ -38,7 +38,8 @@ class DMCClassifier:
         self.fit()
         return self.predict(X)
 
-    def report(self, grid_scores, n_top=3):
+    def report(self, grid_scores, n_top=10):
+        print(self.name)
         top_scores = sorted(
             grid_scores, key=itemgetter(1), reverse=True)[:n_top]
         for i, score in enumerate(top_scores):
@@ -78,7 +79,7 @@ class DecisionTree(DMCClassifier):
 
 
 class Forest(DMCClassifier):
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False, *args):
         super().__init__(X, Y, tune_parameters)
         if tune_parameters:
             self.param_dist_random = {'max_depth': sp_randint(1, 100),
@@ -93,7 +94,7 @@ class NaiveBayes(DMCClassifier):
 
 
 class SVM(DMCClassifier):
-    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
+    def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False, *args):
         super().__init__(X, Y, tune_parameters)
         if tune_parameters:
             self.param_dist_random = {'shrinking': [True, False],
@@ -217,10 +218,10 @@ class TensorFlowNeuralNetwork(DMCClassifier):
     hidden_units = [100, 100]
     optimizer = 'SGD'
 
-    def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
+    def __init__(self, X: np.array, Y: np.array, tune_parameters=False, name='x'):
         super().__init__(X, Y, tune_parameters)
         self.X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
-
+        self.name = name
         output_layer = len(np.unique(Y))
 
         if tune_parameters:

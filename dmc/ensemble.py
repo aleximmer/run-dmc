@@ -126,7 +126,7 @@ class ECEnsemble:
     @staticmethod
     def _classify_split(splinter: tuple) -> dict:
         key, splinter = splinter
-        clf = splinter['classifier'](splinter['train'][0], splinter['train'][1], splinter['optimize'])
+        clf = splinter['classifier'](splinter['train'][0], splinter['train'][1], splinter['optimize'], key)
         ypr = clf(splinter['test'][0])
         try:
             probs = np.max(clf.predict_proba(splinter['test'][0]), 1)
