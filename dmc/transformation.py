@@ -2,6 +2,8 @@ import numpy as np
 from scipy.sparse import csr_matrix, hstack
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, MaxAbsScaler, OneHotEncoder, LabelEncoder
+from sklearn.decomposition import PCA, SparsePCA
+
 
 encode_label = ['paymentMethod', 'sizeCode', 't_customer_preferredPayment']
 encode_int = ['deviceID', 'productGroup', 'articleID', 'customerID', 'orderID',
@@ -67,13 +69,17 @@ def transform_target_vector(df: pd.DataFrame, binary=False) -> np.array:
 
 
 def transform_preserving_header(df: pd.DataFrame, ignore_features=None, scaler=None,
-                                binary_target=False) -> (csr_matrix, np.array, list):
+                                binary_target=False, dim_reduction=False, dims=None) \
+        -> (csr_matrix, np.array, list):
     ignore_features = ignore_features if ignore_features is not None \
         else default_ignore_features
     X, fts = transform_feature_matrix_ph(df, ignore_features)
     X = csr_matrix(X)
     if scaler is not None:
         X = scaler(X)
+    if dim_reduction:
+        assert dims
+
     Y = transform_target_vector(df, binary_target)
     return X, Y, fts
 
@@ -111,12 +117,18 @@ def normalize_raw_features(X: np.array) -> np.array:
     return X
 
 
-def transform(df: pd.DataFrame, ignore_features=None, scaler=None, binary_target=False) \
+def transform(df: pd.DataFrame, ignore_features=None, scaler=None, binary_target=False,
+              dim_reduction=False, dimensions=None) \
         -> (csr_matrix, np.array):
     ignore_features = ignore_features if ignore_features is not None \
         else default_ignore_features
     X = csr_matrix(transform_feature_matrix(df, ignore_features))
     if scaler is not None:
         X = scaler(X)
+    if dim_reduction:
+        assert dimensions > 0
+        # also try pca = SparsePCA()
+        pca = PCA(n_components=dimensions, whiten=True)
+        X = pca.fit_transform(X.toarray())
     Y = transform_target_vector(df, binary_target)
     return X, Y
