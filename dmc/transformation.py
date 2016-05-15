@@ -2,6 +2,7 @@ import numpy as np
 from scipy.sparse import csr_matrix, hstack
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, MaxAbsScaler, OneHotEncoder, LabelEncoder
+from sklearn.decomposition import PCA, SparsePCA
 
 encode_label = ['paymentMethod', 'sizeCode', 't_customer_preferredPayment']
 encode_int = ['deviceID', 'productGroup', 'articleID', 'customerID', 'orderID',
@@ -111,12 +112,18 @@ def normalize_raw_features(X: np.array) -> np.array:
     return X
 
 
-def transform(df: pd.DataFrame, ignore_features=None, scaler=None, binary_target=False) \
+def transform(df: pd.DataFrame, ignore_features=None, scaler=None, binary_target=False,
+                drop_features=False, dimensions=40) \
         -> (csr_matrix, np.array):
     ignore_features = ignore_features if ignore_features is not None \
         else default_ignore_features
     X = csr_matrix(transform_feature_matrix(df, ignore_features))
     if scaler is not None:
         X = scaler(X)
+    if drop_features:
+        assert dimensions
+        comps = int(X.shape[1] * 0.7)
+        pca = SparsePCA(n_components=comps, n_jobs=4)
+        X = pca.fit_transform(X)
     Y = transform_target_vector(df, binary_target)
-    return X, Y
+    return csr_matrix(X), Y

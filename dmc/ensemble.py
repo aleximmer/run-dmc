@@ -2,6 +2,7 @@ from collections import OrderedDict
 from multiprocessing import Pool
 import pandas as pd
 import numpy as np
+from sklearn.decomposition import SparsePCA
 
 from dmc.transformation import transform, default_ignore_features
 from dmc.evaluation import precision, evaluate_features_by_ensemble
@@ -101,6 +102,7 @@ class ECEnsemble:
     @classmethod
     def _transform_split(cls, splinter: tuple) -> dict:
         key, splinter = splinter
+        drop = False
         if splinter['sample'] and not splinter['dropit']:
             print('dont dropit')
             splinter['train'] = cls._subsample(splinter['train'], splinter['sample'])
@@ -108,13 +110,12 @@ class ECEnsemble:
             print('dropit')
             splinter['train'] = splinter['train_df']
             splinter['test'] = splinter['test_df']
-            fts = evaluate_features_by_ensemble(splinter['train'])
-            ign = list(fts[fts.tree < 0.01].index) + default_ignore_features
-            splinter['ignore_features'] = ign
+            drop = True
         offset = len(splinter['train'])
         data = pd.concat([splinter['train'], splinter['test']])
         X, Y = transform(data, binary_target=True, scaler=splinter['scaler'],
-                         ignore_features=splinter['ignore_features'])
+                         ignore_features=splinter['ignore_features'],
+                         drop_features=drop)
         splinter['target'] = cls.transform_target_frame(splinter['test'])
         splinter['train_df'] = splinter['train'].copy()
         splinter['test_df'] = splinter['test'].copy()
