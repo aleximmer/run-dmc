@@ -72,11 +72,9 @@ def evaluate_features_by_ensemble(df: pd.DataFrame) -> pd.DataFrame:
     """Returns a dataframe giving each feature an importance factor"""
     X, fts = transform_feature_matrix_ph(df)
     Y = transform_target_vector(df)
-    forest = Forest(X, Y).fit()
     tree = DecisionTree(X, Y).fit()
     ft_eval = pd.DataFrame({
         'feature': fts,
-        'forest': forest.clf.feature_importances_,
         'tree': tree.clf.feature_importances_,
     })
     return ft_eval.groupby('feature').sum()
