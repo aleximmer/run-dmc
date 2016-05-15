@@ -115,7 +115,7 @@ def transform(df: pd.DataFrame, ignore_features=None, scaler=None, binary_target
         -> (csr_matrix, np.array):
     ignore_features = ignore_features if ignore_features is not None \
         else default_ignore_features
-    X = csr_matrix(transform_feature_matrix(df, ignore_features))
+    X = csr_matrix(transform_feature_matrix(df, ignore_features)).astype(np.float32)
     if scaler is not None:
         X = scaler(X)
     Y = transform_target_vector(df, binary_target)

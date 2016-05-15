@@ -20,7 +20,7 @@ ada = [AdaTree, AdaBayes, AdaSVM]
 
 
 def eval_classifiers(df: pd.DataFrame, split: int, tune_parameters: bool, clas=None):
-    X, Y = dmc.transformation.transform(df, scaler=dmc.transformation.scale_raw_features,
+    X, Y = dmc.transformation.transform(df, scaler=dmc.transformation.scale_features,
                                         binary_target=True)
     print('classifier', clas)
     train = X[:split], Y[:split]
@@ -73,7 +73,7 @@ def split_data_by_id(df: pd.DataFrame, id_file_prefix: str) -> (pd.DataFrame, in
 def split_data_at_id(df: pd.DataFrame, orderID: int) -> (pd.DataFrame, pd.DataFrame):
     train = df[df.orderID < orderID]
     test = df[df.orderID >= orderID]
-    train, test = dmc.features.add_dependent_features(train, test)
+    #train, test = dmc.features.add_dependent_features(train, test)
     return train, test
 
 
@@ -87,17 +87,18 @@ if __name__ == '__main__':
     args = parser.parse_args()
     load_full = args.f
 
-    data = processed_data(load_full)
+    data = processed_data(True)
+    data = data[~data.returnQuantity.isnull()]
     #train_ids, test_ids = dmc.loading.load_ids(id_prefix)
-    #train, test = dmc.preprocessing.split_train_test(data, train_ids, test_ids)
-    #split_point = len(train)
+    train, test = split_data_at_id(data, 1527394)
+    split_point = len(train)
 
     #train = shuffle(train[:split_point])[:3000]
-    #data = pd.concat([train, test])
+    data = pd.concat([train, test])
 
 
     #eval_ensemble(train, test)
-    #print(split_point, len(data), len(train))
-    #print('start evaluation')
-    #eval_classifiers(data, 3000, tune_parameters=True, clas=SVM)
+    print(split_point, len(data), len(train))
+    print('start evaluation')
+    eval_classifiers(data, 1000000, tune_parameters=True, clas=TensorFlowNeuralNetwork)
     #eval_features(data[:split_point])
