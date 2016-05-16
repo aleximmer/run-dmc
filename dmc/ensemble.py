@@ -66,7 +66,7 @@ class ECEnsemble:
         """
         if categorical_splits is None:
             categorical_splits = ['articleID', 'customerID', 'voucherID', 'productGroup']
-        self.processes = 4
+        self.processes = 8
         self.test = test.copy()
         test = test.dropna(subset=['rrp'])
         self.test_size = len(test)
@@ -129,7 +129,8 @@ class ECEnsemble:
         clf = splinter['classifier'](*splinter['train'])
         ypr = clf(splinter['test'][0])
         try:
-            probs = np.max(clf.predict_proba(splinter['test'][0]), 1)
+            probs = clf.predict_proba(splinter['test'][0]
+            probs = np.max(probs, 1) if len(probs.shape) > 1 else probs
             splinter['target']['confidence'] = np.squeeze(probs)
         except Exception as e:
             print('Classifier offers no predict_proba method', e)

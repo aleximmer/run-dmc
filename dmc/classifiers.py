@@ -101,6 +101,9 @@ class SVM(DMCClassifier):
                                       'degree': sp_randint(2, 5)}
         self.clf = SVC(kernel='rbf', shrinking=True)
 
+    def predict_proba(self, X: csr_matrix) -> np.array:
+        return self.clf.decision_function(X)
+
 
 class TheanoNeuralNetwork(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
@@ -220,9 +223,7 @@ class TensorFlowNeuralNetwork(DMCClassifier):
     def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters=False)
         self.X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
-
         output_layer = len(np.unique(Y))
-
         if tune_parameters:
             self.param_dist_random = {'learning_rate': random.random(100),
                                       'optimizer': ['Adam'],
