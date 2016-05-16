@@ -28,7 +28,7 @@ class DMCClassifier:
         self.tune_parameters = tune_parameters
 
     def __call__(self, X: csr_matrix) -> np.array:
-        if(self.tune_parameters):
+        if self.tune_parameters:
             print(self.clf.get_params().keys())
             try:
                 self.estimate_parameters_with_random_search()
@@ -50,7 +50,7 @@ class DMCClassifier:
 
     def estimate_parameters_with_random_search(self):
         random_search = RandomizedSearchCV(self.clf, param_distributions=self.param_dist_random,
-                                           n_iter=10)
+                                           n_iter=30)
         random_search.fit(self.X, self.Y)
         print("Random Search")
         self.report(random_search.grid_scores_)
@@ -61,6 +61,9 @@ class DMCClassifier:
 
     def predict(self, X: csr_matrix) -> np.array:
         return self.clf.predict(X)
+
+    def predict_proba(self, X: csr_matrix) -> np.array:
+        return self.clf.predict_proba(X)
 
 
 class DecisionTree(DMCClassifier):
@@ -92,24 +95,33 @@ class NaiveBayes(DMCClassifier):
 class SVM(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
         super().__init__(X, Y, tune_parameters)
-        self.clf = SVC(decision_function_shape='ovo')
+        if tune_parameters:
+            self.param_dist_random = {'shrinking': [True, False],
+                                      'kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
+                                      'degree': sp_randint(2, 5)}
+        self.clf = SVC(kernel='rbf', shrinking=True)
+
+    def predict_proba(self, X: csr_matrix) -> np.array:
+        return self.clf.decision_function(X)
 
 
 class TheanoNeuralNetwork(DMCClassifier):
     def __init__(self, X: csr_matrix, Y: np.array, tune_parameters=False):
-        super().__init__(X, Y)
+        super().__init__(X, Y, tune_parameters=False)
         input_layer, output_layer = self.X.shape[1], len(np.unique(Y))
         inp = tn.layers.base.Input(size=input_layer, sparse='csr')
-        self.clf = tn.Classifier([inp, 100, 50, output_layer])
+        self.clf = tn.Classifier(layers=[inp,
+                                         (100, 'linear'), (50, 'norm:mean+relu'),
+                                         output_layer])
 
     def fit(self):
-        self.clf.train((self.X, self.Y), algo='sgd', learning_rate=1e-4, momentum=0.9)
+        self.clf.train((self.X, self.Y), algo='sgd', learning_rate=.05, momentum=0.9)
         return self
 
 
 class BagEnsemble(DMCClassifier):
     classifier = None
-    estimators = 50
+    estimators = 20
     max_features = .5
     max_samples = .5
 
@@ -146,8 +158,8 @@ class SVMBag(DMCClassifier):
 
 class AdaBoostEnsemble(DMCClassifier):
     classifier = None
-    estimators = 50
-    learning_rate = .5
+    estimators = 800
+    learning_rate = .25
     algorithm = 'SAMME.R'
 
     def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
@@ -198,29 +210,33 @@ class GradBoost(DMCClassifier):
     def predict(self, X: csr_matrix) -> np.array:
         return self.clf.predict(X.toarray())
 
+    def predict_proba(self, X: csr_matrix):
+        return self.clf.predict(X.toarray())
+
 
 class TensorFlowNeuralNetwork(DMCClassifier):
-    steps = 2000
+    steps = 20000
     learning_rate = 0.05
     hidden_units = [100, 100]
-    n_classes = None
-    optimizer = 'Adagrad'
+    optimizer = 'SGD'
 
-    def __init__(self, X: np.array, Y: np.array, tune_parameters: bool):
-        super().__init__(X, Y, tune_parameters)
+    def __init__(self, X: np.array, Y: np.array, tune_parameters=False):
+        super().__init__(X, Y, tune_parameters=False)
         self.X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
-
-        self.n_classes = len(np.unique(Y))
-
+        output_layer = len(np.unique(Y))
         if tune_parameters:
             self.param_dist_random = {'learning_rate': random.random(100),
                                       'optimizer': ['Adam'],
                                       'hidden_units': [sp_randint(50, 500), sp_randint(50, 500)]}
 
         self.clf = skflow.TensorFlowDNNClassifier(hidden_units=self.hidden_units,
-                                                  n_classes=self.n_classes, steps=self.steps,
-                                                  learning_rate=self.learning_rate, verbose=0)
+                                                  n_classes=output_layer, steps=self.steps,
+                                                  learning_rate=self.learning_rate, verbose=0,
+                                                  optimizer=self.optimizer)
 
     def predict(self, X: csr_matrix):
         X = X.todense()  # TensorFlow/Skflow doesn't support sparse matrices
         return self.clf.predict(X)
+
+    def predict_proba(self, X: csr_matrix):
+        return self.clf.predict_proba(X.todense())

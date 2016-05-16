@@ -1,12 +1,11 @@
-from multiprocessing import Pool, cpu_count
+from collections import OrderedDict
+from multiprocessing import Pool
 import pandas as pd
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from dmc.transformation import normalize_features
 from dmc.transformation import transform
-from dmc.classifiers import DecisionTree
-from dmc.evaluation import precision, dmc_cost
+from dmc.evaluation import precision
 
 
 def add_recognition_vector(train: pd.DataFrame, test: pd.DataFrame, columns: list) \
@@ -18,82 +17,160 @@ def add_recognition_vector(train: pd.DataFrame, test: pd.DataFrame, columns: lis
     return known_mask
 
 
-def split(train: pd.DataFrame, test: pd.DataFrame) -> dict:
+def split(train: pd.DataFrame, test: pd.DataFrame, categorical_splits: list) -> dict:
     """For each permutation of known and unknown categories return the cropped train DataFrame and
     the test subset for evaluation.
     """
-    potentially_unknown = ['articleID', 'customerID', 'voucherID', 'productGroup']
-    known_mask = add_recognition_vector(train, test, potentially_unknown)
+    known_mask = add_recognition_vector(train, test, categorical_splits)
     test = pd.concat([test, known_mask], axis=1)
     splitters = list(known_mask.columns)
-    result = dict()
+    result = OrderedDict()
     for mask, group in test.groupby(splitters):
-        specifier = '-'.join('known_' + col if known else 'unknown_' + col
-                             for known, col in zip(mask, potentially_unknown))
-        unknown_columns = [col for known, col in zip(mask, potentially_unknown) if not known]
-        nan_columns = [col for col in group.columns
-                       if group[col].dtype == float and np.isnan(group[col]).any()]
+        key = ''.join('k' if known else 'u' for known, col in zip(mask, categorical_splits))
+        specifier = ''.join('k' + col if known else 'u' + col
+                            for known, col in zip(mask, categorical_splits))
+        unknown_columns = [col for known, col in zip(mask, categorical_splits) if not known]
+        nan_columns = [col for col in group.columns if col != 'returnQuantity'and
+                       group[col].dtype == float and np.isnan(group[col]).any()]
         train_crop = train.copy().drop(unknown_columns + nan_columns, axis=1)
         test_group = group.copy().drop(unknown_columns + nan_columns + splitters, axis=1)
-        result[specifier] = (train_crop, test_group)
+        result[key] = {'train': train_crop, 'test': test_group, 'name': specifier}
     return result
 
 
-class Ensemble:
-    def __init__(self, train: pd.DataFrame, test: pd.DataFrame):
-        self.train = train
-        self.test = test
-        self.splits = split(train, test)
-        self.pool = Pool(processes=3)
+class ECEnsemble:
+    def __init__(self, train: pd.DataFrame, test: pd.DataFrame, params: dict,
+                 categorical_splits=None):
+        """
+        :param train: train DF
+        :param test: test DF
+        :param params: dict with the following structure
+        Template for params:
+        params = {
+            'uuuu': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'uuku': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'ukuu': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'ukku': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kuuu': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kuuk': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kuku': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kukk': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kkuu': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kkuk': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kkku': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes},
+            'kkkk': {'sample': None, 'scaler': sc, 'ignore_features': None, 'classifier': Bayes}
+        }
+        u = unknown, k = known, scaler = None for Trees and else something like scale_features from
+        dmc.transformation, ignore_features are the features which should be ignored for the split,
 
-    def transform(self, binary_target=True, scalers=None, ignore_features=None):
-        scalers = [normalize_features] * len(self.splits) if scalers is None else scalers
-        ignore_features = ignore_features if ignore_features else [None] * len(self.splits)
-        binary = [binary_target] * len(self.splits)
+        :return:
+        """
+        if categorical_splits is None:
+            categorical_splits = ['articleID', 'customerID', 'voucherID', 'productGroup']
+        self.processes = 8
+        self.test = test.copy()
+        test = test.dropna(subset=['rrp'])
+        self.test_size = len(test)
+        self.splits = split(train, test, categorical_splits)
+        self._enrich_splits(params)
+        # TODO: nans in productGroup, voucherID, rrp result in prediction = 0
 
-        transformation_tuples = zip(self.splits.items(), scalers, ignore_features, binary)
-        trans = self.pool.map(self._transform_split, transformation_tuples)
-        for res in trans:
-            self.splits[res[0]] = res[1]
+    def _enrich_splits(self, params):
+        """Each split needs parameters, no defaults exist"""
+        for k in self.splits:
+            self.splits[k] = {**self.splits[k], **params[k]}
+
+    def transform(self):
+        tuples = zip([k for k in self.splits if self.splits],
+                     [self.splits[k] for k in self.splits])
+        pool = Pool(self.processes)
+        splits = pool.map(self._transform_split, tuples, 1)
+        for k, d in splits:
+            self.splits[k] = d
 
     @staticmethod
-    def _transform_split(args):
-        item, scaler, rm_features, binary_target = args
-        offset = len(item[1][0])
-        data = pd.concat([item[1][0], item[1][1]])
-        if rm_features:
-            data = data.drop(rm_features, 1)
-        X, Y = transform(data, binary_target=binary_target, scaler=scaler)
-        X = csr_matrix(X)
-        return item[0], {
-            'train': (X[:offset], Y[:offset]),
-            'test': (X[offset:], Y[offset:])}
-
-    def classify(self, classifiers=None, hyper_param=False, verbose=True):
-        classifiers = [DecisionTree] * len(self.splits) if classifiers is None else classifiers
-        split_apply = zip(self.splits.items(), classifiers, [hyper_param] * len(self.splits))
-
-        results = self.pool.map(self._classify_split, split_apply)
-
-        all_prec, all_cost, full_size = 0, 0, len(self.test)
-        for size, prec, cost, name, importances in results:
-            all_prec += size / full_size * prec
-            all_cost += cost
-            if verbose:
-                print(name, ': size ', size, ' prec ', prec)
-                print('--------------------------------------')
-
-        print('Overall :', all_prec, all_cost)
+    def _subsample(train: pd.DataFrame, size: int):
+        size = min(len(train), size)
+        return train.reindex(np.random.permutation(train.index))[:size]
 
     @staticmethod
-    def _classify_split(args):
-        split, classifier, hyper_param = args
-        clf = classifier(*split[1]['train'], tune_parameters=hyper_param)
-        pred = clf(split[1]['test'][0])
-        prec = precision(pred, split[1]['test'][1])
-        cost = dmc_cost(pred, split[1]['test'][1])
+    def transform_target_frame(test: pd.DataFrame):
+        return pd.DataFrame(test, index=test.index, columns=['returnQuantity'])
+
+    @classmethod
+    def _transform_split(cls, splinter: tuple) -> dict:
+        key, splinter = splinter
+        if splinter['sample']:
+            splinter['train'] = cls._subsample(splinter['train'], splinter['sample'])
+        offset = len(splinter['train'])
+        data = pd.concat([splinter['train'], splinter['test']])
+        X, Y = transform(data, binary_target=True, scaler=splinter['scaler'],
+                         ignore_features=splinter['ignore_features'])
+        splinter['target'] = cls.transform_target_frame(splinter['test'])
+        splinter['train'] = (X[:offset], Y[:offset].astype(np.int32))
+        if np.isnan(Y[offset:]).any():
+            splinter['test'] = (X[offset:], Y[offset:])
+        else:
+            splinter['test'] = (X[offset:], Y[offset:])
+        return key, splinter
+
+    def classify(self, dump_results=False, dump_name=None):
+        tuples = zip(self.splits, [self.splits[k] for k in self.splits])
+        pool = Pool(self.processes)
+        splits = pool.map(self._classify_split, tuples, 1)
+        for k, d in splits:
+            self.splits[k] = d
+        self.report()
+        if dump_results:
+            self.dump_results(dump_name)
+
+    @staticmethod
+    def _classify_split(splinter: tuple) -> dict:
+        key, splinter = splinter
+        clf = splinter['classifier'](*splinter['train'])
+        ypr = clf(splinter['test'][0])
         try:
-            importances = clf.clf.feature_importances_
-        except:
-            importances = None
-        return len(split[1]['test'][1]), prec, cost, split[0], importances
+            probs = clf.predict_proba(splinter['test'][0])
+            probs = np.max(probs, 1) if len(probs.shape) > 1 else probs
+            splinter['target']['confidence'] = np.squeeze(probs)
+        except Exception as e:
+            print('Classifier offers no predict_proba method', e)
+            splinter['target']['confidence'] = np.nan
+        splinter['target']['prediction'] = ypr
+        # returnQuantity can be nan for class data
+        splinter['target']['returnQuantity'] = splinter['test'][1]
+        # free memory
+        splinter['train'] = None
+        splinter['test'] = None
+        print('Finished fitting', key, 'with', splinter['classifier'])
+        return key, splinter
+
+    def report(self):
+        precs = []
+        for k in self.splits:
+            # If no returnQuantity (target-set) is given, we cannot compute precisions
+            if not np.isnan(self.splits[k]['target'].returnQuantity).any():
+                prec = precision(self.splits[k]['target'].returnQuantity,
+                                 self.splits[k]['target'].prediction)
+                print(k, 'precision', prec, 'size', len(self.splits[k]['target']))
+                precs.append(prec)
+        partials = np.array([len(self.splits[k]['target']) for k in self.splits]) / self.test_size
+        if precs:
+            precs = np.array(precs)
+            print('OVERALL:', np.sum(np.multiply(precs, partials)))
+        else:
+            print('Target set has no evaluation labels')
+
+    def dump_results(self, file_name):
+        test = self.test
+        predicted = pd.concat([self.splits[k]['target'] for k in self.splits])
+        test['prediction'] = predicted.prediction.astype(int)
+        test['confidence'] = predicted.confidence
+
+        test.loc[test['rrp'].isnull(), 'prediction'] = 0
+        test.loc[test['rrp'].isnull(), 'confidence'] = 1.0
+
+        res = pd.DataFrame(test, test.index, columns=['orderID', 'articleID', 'colorCode',
+                                                      'sizeCode', 'quantity', 'confidence',
+                                                      'prediction'])
+        res.to_csv('data/' + file_name + '.csv', sep=';')

@@ -25,7 +25,7 @@ install:
 before_script:
   - flake8 .
 
-script: python -m unittest discover
+script: python -m unittest discover tests
 
 cache:
   - directories:

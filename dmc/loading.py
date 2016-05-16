@@ -15,7 +15,7 @@ def data_full():
     print('Load merged train and class data set.')
     train_df = data_train()
     class_df = data_class()
-    return pd.concat([train_df, class_df])
+    return pd.concat([train_df, class_df], ignore_index=True)
 
 
 def load_ids(id_file_prefix: str) -> (list, list):

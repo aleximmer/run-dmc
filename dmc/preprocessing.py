@@ -7,10 +7,14 @@ from dmc.features import SelectedFeatures
 def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
     """Drop data which doesn't comply with constraints
     Dropped rows would be """
-    df = df[df.quantity > 0]
-    df = df[df.quantity >= df.returnQuantity]
+    df.voucherID.fillna(0, inplace=True)
+    df_train = df[~np.isnan(df.returnQuantity)]
+    df_class = df[np.isnan(df.returnQuantity)]
+    df_train = df_train[df_train.quantity > 0]
+    df_train = df_train[(df_train.quantity >= df_train.returnQuantity)]
     # nans in these rows definitely have returnQuantity == 0
-    df = df.dropna(subset=['voucherID', 'rrp', 'productGroup'])
+    df_train = df_train.dropna(subset=['voucherID', 'rrp', 'productGroup'])
+    df = pd.concat([df_train, df_class], ignore_index=True)
     df = fill_nas(df)
     return df
 

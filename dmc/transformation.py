@@ -59,9 +59,11 @@ def transform_feature_matrix(df: pd.DataFrame, ignore_features: list) -> csr_mat
 
 def transform_target_vector(df: pd.DataFrame, binary=False) -> np.array:
     """Only used on data with known labels otherwise it will fail"""
+    binarize = lambda x: 1 if x > 0 else 0
+    detect = lambda x: x if np.isnan(x) else binarize(x)
     if binary:
-        df.returnQuantity = df.returnQuantity.apply(lambda x: 1 if x > 0 else 0)
-    return np.squeeze(df.as_matrix(columns=['returnQuantity'])).astype(np.int32)
+        df.returnQuantity = df.returnQuantity.apply(detect)
+    return np.squeeze(df.as_matrix(columns=['returnQuantity'])).astype(np.float32)
 
 
 def transform_preserving_header(df: pd.DataFrame, ignore_features=None, scaler=None,
@@ -69,6 +71,7 @@ def transform_preserving_header(df: pd.DataFrame, ignore_features=None, scaler=N
     ignore_features = ignore_features if ignore_features is not None \
         else default_ignore_features
     X, fts = transform_feature_matrix_ph(df, ignore_features)
+    X = csr_matrix(X)
     if scaler is not None:
         X = scaler(X)
     Y = transform_target_vector(df, binary_target)
@@ -112,7 +115,7 @@ def transform(df: pd.DataFrame, ignore_features=None, scaler=None, binary_target
         -> (csr_matrix, np.array):
     ignore_features = ignore_features if ignore_features is not None \
         else default_ignore_features
-    X = transform_feature_matrix(df, ignore_features)
+    X = csr_matrix(transform_feature_matrix(df, ignore_features))
     if scaler is not None:
         X = scaler(X)
     Y = transform_target_vector(df, binary_target)
