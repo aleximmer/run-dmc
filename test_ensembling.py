@@ -21,17 +21,17 @@ del data
 params = {
     # article, customer, productGroup
     'uuuu': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
-    'uuuk': {'sample': 125000, 'scaler': raw_scaler, 'classifier': SVM},
+    'uuuk': {'sample': 150000, 'scaler': raw_scaler, 'classifier': SVM},
     'uuku': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
     'uukk': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
-    'ukuu': {'sample': 750000, 'scaler': None, 'classifier': Forest},
-    'ukuk': {'sample': 850000, 'scaler': None, 'classifier': Forest},
-    'ukku': {'sample': 850000, 'scaler': None, 'classifier': Forest},
-    'ukkk': {'sample': 1000000, 'scaler': None, 'classifier': Forest},
-    'kuuk': {'sample': 125000, 'scaler': raw_scaler, 'classifier': SVM},
+    'ukuu': {'sample': 1200000, 'scaler': None, 'classifier': Forest},
+    'ukuk': {'sample': 1400000, 'scaler': None, 'classifier': Forest},
+    'ukku': {'sample': 1400000, 'scaler': None, 'classifier': Forest},
+    'ukkk': {'sample': 1400000, 'scaler': None, 'classifier': Forest},
+    'kuuk': {'sample': 150000, 'scaler': raw_scaler, 'classifier': SVM},
     'kukk': {'sample': None, 'scaler': scaler, 'classifier': TensorNetwork},
-    'kkuk': {'sample': 1000000, 'scaler': None, 'classifier': Forest},
-    'kkkk': {'sample': 1200000, 'scaler': None, 'classifier': Forest}
+    'kkuk': {'sample': 1600000, 'scaler': None, 'classifier': Forest},
+    'kkkk': {'sample': None, 'scaler': None, 'classifier': Forest}
 }
 
 for k in params:
@@ -44,4 +44,4 @@ ensemble = ECEnsemble(train, test, params, quads)
 print('transform for test')
 ensemble.transform()
 print('classify for test')
-ensemble.classify(dump_results=True, dump_name='quadtest-ensemble-extreme')
+ensemble.classify(dump_results=True, dump_name='quadtest-ensemble-extreme-2')

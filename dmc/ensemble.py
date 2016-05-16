@@ -129,7 +129,7 @@ class ECEnsemble:
         clf = splinter['classifier'](*splinter['train'])
         ypr = clf(splinter['test'][0])
         try:
-            probs = clf.predict_proba(splinter['test'][0]
+            probs = clf.predict_proba(splinter['test'][0])
             probs = np.max(probs, 1) if len(probs.shape) > 1 else probs
             splinter['target']['confidence'] = np.squeeze(probs)
         except Exception as e:
