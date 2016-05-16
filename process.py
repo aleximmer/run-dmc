@@ -19,13 +19,13 @@ bag = [TreeBag, SVMBag, GradBoost]
 ada = [AdaTree, AdaBayes, AdaSVM]
 
 
-def eval_classifiers(df: pd.DataFrame, split: int, tune_parameters: bool, clas=None):
-    X, Y = dmc.transformation.transform(df, scaler=dmc.transformation.scale_raw_features,
+def eval_classifier(df: pd.DataFrame, split: int, tune_parameters: bool, clf=None):
+    X, Y = dmc.transformation.transform(df, scaler=dmc.transformation.scale_features,
                                         binary_target=True)
-    print('classifier', clas)
+    print('classifier', clf)
     train = X[:split], Y[:split]
     test = X[split:], Y[split:]
-    clf = clas(train[0], train[1], tune_parameters)
+    clf = clf(train[0], train[1], tune_parameters)
     res = clf(test[0])
     precision = dmc.evaluation.precision(res, test[1])
     print('precision', precision)
@@ -40,7 +40,7 @@ def processed_data(load_full=False) -> pd.DataFrame:
     """Create or read DataFrame with all features that are independent"""
     rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) + processed_file)
     rel_file_path_full = os.path.join(os.path.dirname(os.path.realpath(__file__))
-            + processed_full_file)
+                                      + processed_full_file)
     if os.path.isfile(rel_file_path) and not load_full:
         return pd.DataFrame.from_csv(rel_file_path)
     if os.path.isfile(rel_file_path_full) and load_full:
@@ -82,22 +82,9 @@ def shuffle(df: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-f', action='store_true', help='load the unified dataset (train + class)')
-    args = parser.parse_args()
-    load_full = args.f
+    n_train, n_test = 5000, 20000
+    data = processed_data(load_full=False)
+    data = shuffle(data)[:n_train + n_test]
 
-    data = processed_data(load_full)
-    #train_ids, test_ids = dmc.loading.load_ids(id_prefix)
-    #train, test = dmc.preprocessing.split_train_test(data, train_ids, test_ids)
-    #split_point = len(train)
-
-    #train = shuffle(train[:split_point])[:3000]
-    #data = pd.concat([train, test])
-
-
-    #eval_ensemble(train, test)
-    #print(split_point, len(data), len(train))
-    #print('start evaluation')
-    #eval_classifiers(data, 3000, tune_parameters=True, clas=SVM)
-    #eval_features(data[:split_point])
+    eval_classifier(data, n_train, tune_parameters=False, clf=NaiveBayes)
+    eval_features(data[:n_train])
