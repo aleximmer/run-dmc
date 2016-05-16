@@ -35,5 +35,5 @@ class SplitTest(unittest.TestCase):
             self.assertTrue(len(s[0].columns) <= len(data.columns))
             self.assertTrue(len(s[1].columns) == len(s[0].columns))
             # double because unknown col has also nan col in this test
-            x = 2 *  s[2].count('u') # len([e for e in s[2].split('-') if 'unknown' in e])
+            x = 2 * s[2].count('u')
             self.assertTrue(len(s[1].columns) == len(data.columns) - x)
