@@ -39,8 +39,8 @@ def eval_features(df: pd.DataFrame):
 def processed_data(load_full=False) -> pd.DataFrame:
     """Create or read DataFrame with all features that are independent"""
     rel_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)) + processed_file)
-    rel_file_path_full = os.path.join(os.path.dirname(os.path.realpath(__file__))
-                                      + processed_full_file)
+    rel_file_path_full = os.path.join(os.path.dirname(os.path.realpath(__file__)) +
+                                      processed_full_file)
     if os.path.isfile(rel_file_path) and not load_full:
         return pd.DataFrame.from_csv(rel_file_path)
     if os.path.isfile(rel_file_path_full) and load_full:
@@ -52,7 +52,6 @@ def processed_data(load_full=False) -> pd.DataFrame:
     else:
         df = dmc.loading.data_train()
     df = dmc.preprocessing.cleanse(df)
-    print('len after preprocessing', len(df))
     df = dmc.features.add_independent_features(df)
     if load_full:
         df.to_csv(rel_file_path_full, sep=',')

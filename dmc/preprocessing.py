@@ -10,7 +10,6 @@ def enforce_constraints(df: pd.DataFrame) -> pd.DataFrame:
     df.voucherID.fillna(0, inplace=True)
     df_train = df[~np.isnan(df.returnQuantity)]
     df_class = df[np.isnan(df.returnQuantity)]
-    print(len(df_train), len(df_class))
     df_train = df_train[df_train.quantity > 0]
     df_train = df_train[(df_train.quantity >= df_train.returnQuantity)]
     # nans in these rows definitely have returnQuantity == 0
